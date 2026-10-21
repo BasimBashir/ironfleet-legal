@@ -19,7 +19,6 @@ against each repository on 2026-10-21:
 |---|---|---|
 | summariser | anthropics/knowledge-work-plugins | Apache-2.0 |
 | affidavit-formatter | anthropics/knowledge-work-plugins | Apache-2.0 |
-| nz-contract-reviewer | lawvable/awesome-legal-skills | **CC-BY-NC-ND-4.0** ⚠ |
 | nz-property-based-testing | trailofbits/skills | CC-BY-SA-4.0 |
 | nz-differential-review | trailofbits/skills | CC-BY-SA-4.0 |
 | nz-memory-systems | muratcankoylan/Agent-Skills-for-Context-Engineering | MIT |
@@ -29,9 +28,10 @@ against each repository on 2026-10-21:
 | nz-varlock | wrsmith108/varlock-claude-skill | MIT |
 | nz-kreuzberg-ingestor | kreuzberg-dev/kreuzberg | MIT |
 
-⚠ **nz-contract-reviewer:** the upstream licence is non-commercial, no-derivatives. This
-NZ-contextualised adaptation **must be dropped or rewritten from scratch before any
-commercial redistribution** of this plugin. It ships in v1 as a recorded gate (R-CL6).
+**Not distributed:** an `nz-contract-reviewer` skill adapted from
+lawvable/awesome-legal-skills (CC-BY-NC-ND-4.0, no-derivatives) exists in the source
+programme but is **excluded from this distribution** — its licence does not permit
+redistribution of adaptations. It may return as a from-scratch rewrite.
 
 CC-BY-SA-4.0 skills (nz-property-based-testing, nz-differential-review) are licensed
 CC-BY-SA-4.0 as adapted; share-alike applies to those files.

@@ -30,10 +30,12 @@ provenance-stamped, every run leaving a complete paper trail.
 
 Claude Code:
 ```bash
-claude plugin marketplace add <you>/ironfleet-legal
-claude plugin install ironfleet-legal
+claude plugin marketplace add BasimBashir/ironfleet-legal
+claude plugin install ironfleet-legal@ironfleet-legal --config consent_local_processing=true
 ```
-Claude Desktop / Cowork: Customize → Plugins → **Add marketplace** → `<you>/ironfleet-legal`.
+Claude Desktop / Cowork: Customize → Plugins → **Add marketplace** →
+`BasimBashir/ironfleet-legal` → Install. Full first-run walkthrough:
+[docs/FRESH-OS-SETUP.md](docs/FRESH-OS-SETUP.md).
 
 ## First run
 
@@ -57,9 +59,8 @@ matters. The plugin ships no corpus content and never phones home.
 ## Licence & attribution
 
 MIT for the plugin's own code and IronFleet-authored skills; adapted skills carry their
-upstream licences — see [ATTRIBUTION.md](ATTRIBUTION.md). **One known gate:**
-`nz-contract-reviewer` is adapted from a CC-BY-NC-ND source and must be dropped or
-rewritten before any commercial redistribution.
+upstream licences — see [ATTRIBUTION.md](ATTRIBUTION.md). One adapted skill
+(`nz-contract-reviewer`, CC-BY-NC-ND upstream) is deliberately **not distributed**.
 
 Not legal advice. Output is drafted assistance for legal professionals — a qualified
 New Zealand lawyer reviews everything before filing.
