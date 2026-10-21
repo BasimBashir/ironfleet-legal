@@ -73,6 +73,25 @@ a normal one it reports "indeterminate" and privileged matters stay gated (fail-
 by design); (b) the privacy boundary is always stated (plaintext Claude Code transcripts
 under `~/.claude/projects/`, 30-day default cleanup).
 
+## Placeholder cheat-sheet — what you actually type
+
+Placeholders appear in angle brackets. You replace the WHOLE bracket (and the brackets
+themselves) with your text — never type the `<` `>`.
+
+| Placeholder | What goes there | Example |
+|---|---|---|
+| `<your ask …>` / `<ask>` | Your question or instruction to the legal crew, in plain English. This is the ONE prompt that runs the whole pipeline. | `process my docs — can I win, and how do I file?` |
+| `<ref>` / `<colon-free-ref>` / `<matter-ref>` | A matter reference: the short name for THIS case. Letters, digits and dashes only — **no colons, spaces or slashes** (Windows forbids them in folder names; the store keys on it). Keep it stable: every later command for the same case reuses the same ref. | `powell-builders`, `acme-2026`, `smith-estate` |
+| `<folder-or-file>` / `<path>` / `<folder>` | Where your documents live — a single file OR a whole folder (folders are ingested recursively; PDF/DOCX/TXT/MD all fine). Relative paths work from the folder Claude is running in. | `matter-docs`, `C:\cases\powell\emails.pdf` |
+| `[matter: <ref>]` | The OPTIONAL tail you append to a command to name the matter. Square brackets in the docs mean "you may leave this off" — if you do, the plugin derives a ref from the file/folder name and tells you what it chose. | `… matter: powell-builders` |
+| `KEY=VALUE` | The install-time consent flag: the KEY is literally `consent_local_processing`, the VALUE literally `true`. Type it exactly as shown; nothing to substitute. | `--config consent_local_processing=true` |
+| `<date>` / `<run-id>` / `<id>` | NOT typed by you — these label things the plugin produces (a run folder like `runs/20261021-a3f2c1/`) or your session id for `claude --resume <id>`. When one matters, the tool prints the real value; copy that. | — |
+| `ironfleet-legal:<name>` (agent rows, prompt output) | Internal naming you never type: plugin-prefixed agent names appear in the transcript when stages run. | — |
+
+One naming rule that saves pain: pick the matter `<ref>` once, keep it colon-free, and
+use it everywhere — ingest, process-case, and follow-up sessions on the same case all
+key the corpus, the workspace and the run history off it.
+
 ## 5. Ingest a matter
 
 ```
