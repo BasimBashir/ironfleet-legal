@@ -6,10 +6,15 @@
 from __future__ import annotations
 
 import json
+import os
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))   # vendored `harness` + records
+_MCP_DIR = str(Path(__file__).resolve().parent)
+sys.path.insert(0, _MCP_DIR)   # vendored `harness` + records
+# The killable-parse watchdog (ingest_generic.extract_text) re-imports this package in a
+# CHILD python; without PYTHONPATH that child only worked where `harness` was pip-installed.
+os.environ["PYTHONPATH"] = _MCP_DIR + os.pathsep + os.environ.get("PYTHONPATH", "")
 
 import records                                            # noqa: E402
 from harness.corpus import CorpusStore, ironfleet_corpus_search  # noqa: E402

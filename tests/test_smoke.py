@@ -110,3 +110,12 @@ def test_provenance_header_carries_sha():
     src = Path(__file__)
     out = records.provenance_header("r-1", "research", "hunter", sources=[str(src)])
     assert "run_id: r-1" in out["header"] and "agent: hunter" in out["header"]
+
+
+def test_extract_text_child_inherits_path(tmp_path):
+    """The killable-parse child python must be able to `import harness` (found live
+    2026-10-21: it only resolved where the package was pip-installed)."""
+    f = tmp_path / "doc.txt"
+    f.write_text("word " * 250, encoding="utf-8")
+    from harness.ingest_generic import extract_text
+    assert len(extract_text(f).split()) == 250
