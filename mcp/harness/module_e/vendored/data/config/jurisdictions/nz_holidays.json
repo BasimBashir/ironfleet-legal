@@ -1,0 +1,238 @@
+{
+  "_meta": {
+    "description": "NZ public holidays 2024-2030. National holidays apply everywhere; regional anniversary days apply per region.",
+    "sources": [
+      "Employment New Zealand — Public holidays",
+      "Te Papa — Matariki public holiday dates",
+      "Holidays Act 2003 (Mondayisation rules)"
+    ],
+    "mondayisation": "If a holiday falls on Saturday or Sunday, the observed date shifts to the following Monday (or Tuesday if Monday is already a public holiday)."
+  },
+
+  "national": {
+    "2024": [
+      {"date": "2024-01-01", "name": "New Year's Day"},
+      {"date": "2024-01-02", "name": "Day after New Year's Day"},
+      {"date": "2024-02-06", "name": "Waitangi Day"},
+      {"date": "2024-03-29", "name": "Good Friday"},
+      {"date": "2024-04-01", "name": "Easter Monday"},
+      {"date": "2024-04-25", "name": "ANZAC Day"},
+      {"date": "2024-06-03", "name": "King's Birthday"},
+      {"date": "2024-06-28", "name": "Matariki"},
+      {"date": "2024-10-28", "name": "Labour Day"},
+      {"date": "2024-12-25", "name": "Christmas Day"},
+      {"date": "2024-12-26", "name": "Boxing Day"}
+    ],
+    "2025": [
+      {"date": "2025-01-01", "name": "New Year's Day"},
+      {"date": "2025-01-02", "name": "Day after New Year's Day"},
+      {"date": "2025-02-06", "name": "Waitangi Day"},
+      {"date": "2025-04-18", "name": "Good Friday"},
+      {"date": "2025-04-21", "name": "Easter Monday"},
+      {"date": "2025-04-25", "name": "ANZAC Day"},
+      {"date": "2025-06-02", "name": "King's Birthday"},
+      {"date": "2025-06-20", "name": "Matariki"},
+      {"date": "2025-10-27", "name": "Labour Day"},
+      {"date": "2025-12-25", "name": "Christmas Day"},
+      {"date": "2025-12-26", "name": "Boxing Day"}
+    ],
+    "2026": [
+      {"date": "2026-01-01", "name": "New Year's Day"},
+      {"date": "2026-01-02", "name": "Day after New Year's Day"},
+      {"date": "2026-02-06", "name": "Waitangi Day"},
+      {"date": "2026-04-03", "name": "Good Friday"},
+      {"date": "2026-04-06", "name": "Easter Monday"},
+      {"date": "2026-04-27", "name": "ANZAC Day (Mondayised)"},
+      {"date": "2026-06-01", "name": "King's Birthday"},
+      {"date": "2026-07-10", "name": "Matariki"},
+      {"date": "2026-10-26", "name": "Labour Day"},
+      {"date": "2026-12-25", "name": "Christmas Day"},
+      {"date": "2026-12-28", "name": "Boxing Day (Mondayised)"}
+    ],
+    "2027": [
+      {"date": "2027-01-01", "name": "New Year's Day"},
+      {"date": "2027-01-04", "name": "Day after New Year's Day (Mondayised)"},
+      {"date": "2027-02-08", "name": "Waitangi Day (Mondayised)"},
+      {"date": "2027-03-26", "name": "Good Friday"},
+      {"date": "2027-03-29", "name": "Easter Monday"},
+      {"date": "2027-04-26", "name": "ANZAC Day (Mondayised)"},
+      {"date": "2027-06-07", "name": "King's Birthday"},
+      {"date": "2027-06-25", "name": "Matariki"},
+      {"date": "2027-10-25", "name": "Labour Day"},
+      {"date": "2027-12-27", "name": "Christmas Day (Mondayised)"},
+      {"date": "2027-12-28", "name": "Boxing Day (Mondayised)"}
+    ],
+    "2028": [
+      {"date": "2028-01-03", "name": "New Year's Day (Mondayised)"},
+      {"date": "2028-01-04", "name": "Day after New Year's Day (Mondayised)"},
+      {"date": "2028-02-07", "name": "Waitangi Day (Mondayised)"},
+      {"date": "2028-04-14", "name": "Good Friday"},
+      {"date": "2028-04-17", "name": "Easter Monday"},
+      {"date": "2028-04-25", "name": "ANZAC Day"},
+      {"date": "2028-06-05", "name": "King's Birthday"},
+      {"date": "2028-07-14", "name": "Matariki"},
+      {"date": "2028-10-23", "name": "Labour Day"},
+      {"date": "2028-12-25", "name": "Christmas Day"},
+      {"date": "2028-12-26", "name": "Boxing Day"}
+    ],
+    "2029": [
+      {"date": "2029-01-01", "name": "New Year's Day"},
+      {"date": "2029-01-02", "name": "Day after New Year's Day"},
+      {"date": "2029-02-06", "name": "Waitangi Day"},
+      {"date": "2029-03-30", "name": "Good Friday"},
+      {"date": "2029-04-02", "name": "Easter Monday"},
+      {"date": "2029-04-25", "name": "ANZAC Day"},
+      {"date": "2029-06-04", "name": "King's Birthday"},
+      {"date": "2029-07-06", "name": "Matariki"},
+      {"date": "2029-10-22", "name": "Labour Day"},
+      {"date": "2029-12-25", "name": "Christmas Day"},
+      {"date": "2029-12-26", "name": "Boxing Day"}
+    ],
+    "2030": [
+      {"date": "2030-01-01", "name": "New Year's Day"},
+      {"date": "2030-01-02", "name": "Day after New Year's Day"},
+      {"date": "2030-02-06", "name": "Waitangi Day"},
+      {"date": "2030-04-19", "name": "Good Friday"},
+      {"date": "2030-04-22", "name": "Easter Monday"},
+      {"date": "2030-04-25", "name": "ANZAC Day"},
+      {"date": "2030-06-03", "name": "King's Birthday"},
+      {"date": "2030-06-21", "name": "Matariki"},
+      {"date": "2030-10-28", "name": "Labour Day"},
+      {"date": "2030-12-25", "name": "Christmas Day"},
+      {"date": "2030-12-26", "name": "Boxing Day"}
+    ]
+  },
+
+  "regional": {
+    "auckland": {
+      "_rule": "Closest Monday to 29 January",
+      "2024": [{"date": "2024-01-29", "name": "Auckland Anniversary Day"}],
+      "2025": [{"date": "2025-01-27", "name": "Auckland Anniversary Day"}],
+      "2026": [{"date": "2026-01-26", "name": "Auckland Anniversary Day"}],
+      "2027": [{"date": "2027-02-01", "name": "Auckland Anniversary Day"}],
+      "2028": [{"date": "2028-01-31", "name": "Auckland Anniversary Day"}],
+      "2029": [{"date": "2029-01-29", "name": "Auckland Anniversary Day"}],
+      "2030": [{"date": "2030-01-28", "name": "Auckland Anniversary Day"}]
+    },
+    "northland": {
+      "_rule": "Same as Auckland Anniversary Day",
+      "2024": [{"date": "2024-01-29", "name": "Northland Anniversary Day"}],
+      "2025": [{"date": "2025-01-27", "name": "Northland Anniversary Day"}],
+      "2026": [{"date": "2026-01-26", "name": "Northland Anniversary Day"}],
+      "2027": [{"date": "2027-02-01", "name": "Northland Anniversary Day"}],
+      "2028": [{"date": "2028-01-31", "name": "Northland Anniversary Day"}],
+      "2029": [{"date": "2029-01-29", "name": "Northland Anniversary Day"}],
+      "2030": [{"date": "2030-01-28", "name": "Northland Anniversary Day"}]
+    },
+    "wellington": {
+      "_rule": "Closest Monday to 22 January",
+      "2024": [{"date": "2024-01-22", "name": "Wellington Anniversary Day"}],
+      "2025": [{"date": "2025-01-20", "name": "Wellington Anniversary Day"}],
+      "2026": [{"date": "2026-01-19", "name": "Wellington Anniversary Day"}],
+      "2027": [{"date": "2027-01-25", "name": "Wellington Anniversary Day"}],
+      "2028": [{"date": "2028-01-24", "name": "Wellington Anniversary Day"}],
+      "2029": [{"date": "2029-01-22", "name": "Wellington Anniversary Day"}],
+      "2030": [{"date": "2030-01-21", "name": "Wellington Anniversary Day"}]
+    },
+    "taranaki": {
+      "_rule": "Closest Monday to 31 March",
+      "2024": [{"date": "2024-04-01", "name": "Taranaki Anniversary Day"}],
+      "2025": [{"date": "2025-03-31", "name": "Taranaki Anniversary Day"}],
+      "2026": [{"date": "2026-03-30", "name": "Taranaki Anniversary Day"}],
+      "2027": [{"date": "2027-03-29", "name": "Taranaki Anniversary Day"}],
+      "2028": [{"date": "2028-04-03", "name": "Taranaki Anniversary Day"}],
+      "2029": [{"date": "2029-04-02", "name": "Taranaki Anniversary Day"}],
+      "2030": [{"date": "2030-04-01", "name": "Taranaki Anniversary Day"}]
+    },
+    "hawkes_bay": {
+      "_rule": "Friday before Labour Day",
+      "2024": [{"date": "2024-10-25", "name": "Hawke's Bay Anniversary Day"}],
+      "2025": [{"date": "2025-10-24", "name": "Hawke's Bay Anniversary Day"}],
+      "2026": [{"date": "2026-10-23", "name": "Hawke's Bay Anniversary Day"}],
+      "2027": [{"date": "2027-10-22", "name": "Hawke's Bay Anniversary Day"}],
+      "2028": [{"date": "2028-10-20", "name": "Hawke's Bay Anniversary Day"}],
+      "2029": [{"date": "2029-10-19", "name": "Hawke's Bay Anniversary Day"}],
+      "2030": [{"date": "2030-10-25", "name": "Hawke's Bay Anniversary Day"}]
+    },
+    "nelson": {
+      "_rule": "Closest Monday to 1 February",
+      "2024": [{"date": "2024-01-29", "name": "Nelson Anniversary Day"}],
+      "2025": [{"date": "2025-02-03", "name": "Nelson Anniversary Day"}],
+      "2026": [{"date": "2026-02-02", "name": "Nelson Anniversary Day"}],
+      "2027": [{"date": "2027-02-01", "name": "Nelson Anniversary Day"}],
+      "2028": [{"date": "2028-01-31", "name": "Nelson Anniversary Day"}],
+      "2029": [{"date": "2029-01-29", "name": "Nelson Anniversary Day"}],
+      "2030": [{"date": "2030-02-04", "name": "Nelson Anniversary Day"}]
+    },
+    "marlborough": {
+      "_rule": "Closest Monday to 1 November",
+      "2024": [{"date": "2024-11-04", "name": "Marlborough Anniversary Day"}],
+      "2025": [{"date": "2025-11-03", "name": "Marlborough Anniversary Day"}],
+      "2026": [{"date": "2026-11-02", "name": "Marlborough Anniversary Day"}],
+      "2027": [{"date": "2027-11-01", "name": "Marlborough Anniversary Day"}],
+      "2028": [{"date": "2028-10-30", "name": "Marlborough Anniversary Day"}],
+      "2029": [{"date": "2029-10-29", "name": "Marlborough Anniversary Day"}],
+      "2030": [{"date": "2030-11-04", "name": "Marlborough Anniversary Day"}]
+    },
+    "canterbury": {
+      "_rule": "Second Friday after first Tuesday in November (Show Day)",
+      "2024": [{"date": "2024-11-15", "name": "Canterbury Anniversary Day"}],
+      "2025": [{"date": "2025-11-14", "name": "Canterbury Anniversary Day"}],
+      "2026": [{"date": "2026-11-13", "name": "Canterbury Anniversary Day"}],
+      "2027": [{"date": "2027-11-12", "name": "Canterbury Anniversary Day"}],
+      "2028": [{"date": "2028-11-17", "name": "Canterbury Anniversary Day"}],
+      "2029": [{"date": "2029-11-16", "name": "Canterbury Anniversary Day"}],
+      "2030": [{"date": "2030-11-15", "name": "Canterbury Anniversary Day"}]
+    },
+    "south_canterbury": {
+      "_rule": "Closest Monday to 16 December",
+      "2024": [{"date": "2024-12-16", "name": "South Canterbury Anniversary Day"}],
+      "2025": [{"date": "2025-12-15", "name": "South Canterbury Anniversary Day"}],
+      "2026": [{"date": "2026-12-14", "name": "South Canterbury Anniversary Day"}],
+      "2027": [{"date": "2027-12-13", "name": "South Canterbury Anniversary Day"}],
+      "2028": [{"date": "2028-12-18", "name": "South Canterbury Anniversary Day"}],
+      "2029": [{"date": "2029-12-17", "name": "South Canterbury Anniversary Day"}],
+      "2030": [{"date": "2030-12-16", "name": "South Canterbury Anniversary Day"}]
+    },
+    "westland": {
+      "_rule": "Closest Monday to 1 December",
+      "2024": [{"date": "2024-12-02", "name": "Westland Anniversary Day"}],
+      "2025": [{"date": "2025-12-01", "name": "Westland Anniversary Day"}],
+      "2026": [{"date": "2026-11-30", "name": "Westland Anniversary Day"}],
+      "2027": [{"date": "2027-11-29", "name": "Westland Anniversary Day"}],
+      "2028": [{"date": "2028-12-04", "name": "Westland Anniversary Day"}],
+      "2029": [{"date": "2029-12-03", "name": "Westland Anniversary Day"}],
+      "2030": [{"date": "2030-12-02", "name": "Westland Anniversary Day"}]
+    },
+    "otago": {
+      "_rule": "Closest Monday to 23 March",
+      "2024": [{"date": "2024-03-25", "name": "Otago Anniversary Day"}],
+      "2025": [{"date": "2025-03-24", "name": "Otago Anniversary Day"}],
+      "2026": [{"date": "2026-03-23", "name": "Otago Anniversary Day"}],
+      "2027": [{"date": "2027-03-22", "name": "Otago Anniversary Day"}],
+      "2028": [{"date": "2028-03-20", "name": "Otago Anniversary Day"}],
+      "2029": [{"date": "2029-03-26", "name": "Otago Anniversary Day"}],
+      "2030": [{"date": "2030-03-25", "name": "Otago Anniversary Day"}]
+    },
+    "southland": {
+      "_rule": "Tuesday after Easter",
+      "2024": [{"date": "2024-04-02", "name": "Southland Anniversary Day"}],
+      "2025": [{"date": "2025-04-22", "name": "Southland Anniversary Day"}],
+      "2026": [{"date": "2026-04-07", "name": "Southland Anniversary Day"}],
+      "2027": [{"date": "2027-03-30", "name": "Southland Anniversary Day"}],
+      "2028": [{"date": "2028-04-18", "name": "Southland Anniversary Day"}],
+      "2029": [{"date": "2029-04-03", "name": "Southland Anniversary Day"}],
+      "2030": [{"date": "2030-04-23", "name": "Southland Anniversary Day"}]
+    },
+    "chatham_islands": {
+      "_rule": "Closest Monday to 30 November",
+      "2024": [{"date": "2024-12-02", "name": "Chatham Islands Anniversary Day"}],
+      "2025": [{"date": "2025-12-01", "name": "Chatham Islands Anniversary Day"}],
+      "2026": [{"date": "2026-11-30", "name": "Chatham Islands Anniversary Day"}],
+      "2027": [{"date": "2027-11-29", "name": "Chatham Islands Anniversary Day"}],
+      "2028": [{"date": "2028-11-27", "name": "Chatham Islands Anniversary Day"}],
+      "2029": [{"date": "2029-12-03", "name": "Chatham Islands Anniversary Day"}],
+      "2030": [{"date": "2030-12-02", "name": "Chatham Islands Anniversary Day"}]
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "name": "ironfleet-legal",
+  "owner": { "name": "IronFleet" },
+  "description": "IronFleet Legal — the NZ paralegal plugin for Claude.",
+  "plugins": [
+    {
+      "name": "ironfleet-legal",
+      "source": ".",
+      "description": "NZ legal paralegal: ingest a matter, run the nine-stage agent pipeline, court-ready deliverables with citation-exact grounding.",
+      "version": "0.1.0",
+      "category": "legal",
+      "tags": ["legal", "new-zealand", "paralegal"]
+    }
+  ]
+}

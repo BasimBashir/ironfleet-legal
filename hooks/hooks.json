@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "mcp__plugin_ironfleet-legal_ironfleet__ironfleet_begin_run",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"${CLAUDE_PLUGIN_ROOT}/hooks/capture_session.py\""
+          }
+        ]
+      }
+    ]
+  }
+}

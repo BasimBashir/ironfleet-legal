@@ -1,0 +1,60 @@
+{
+  "code": "au",
+  "name": "Australia",
+  "currency": "AUD",
+  "interest": {
+    "prescribed_rate": "5.00",
+    "day_count_convention": "actual_365_fixed",
+    "statute_ref": "Federal Court of Australia Act 1976 s 51A / Penalty Interest Rates Act 1983 (Vic)"
+  },
+  "limitation_periods": {
+    "contract": 6,
+    "tort": 6,
+    "negligence": 6,
+    "debt": 6,
+    "defamation": 1,
+    "personal_injury": 3,
+    "land": 12,
+    "judgment": 12,
+    "equity": 6
+  },
+  "statutory_demand": {
+    "prescribed_minimum": "4000.00",
+    "compliance_period_working_days": 21,
+    "statute_ref": "Corporations Act 2001 s 459E"
+  },
+  "penalty_clause": {
+    "ratio_thresholds": {
+      "low": "1.0",
+      "moderate": "1.5",
+      "high": "3.0"
+    },
+    "statute_ref": "Common law (Andrews v Australia and New Zealand Banking Group Ltd [2012] HCA 30)"
+  },
+  "solvency": {
+    "warning_threshold": "0.30",
+    "critical_threshold": "0.50",
+    "statute_ref": "National Consumer Credit Protection Act 2009"
+  },
+  "security_interest": {
+    "valid_collateral_types": [
+      "accounts_receivable",
+      "all_present_and_after_acquired_property",
+      "chattel_paper",
+      "consumer_goods",
+      "crops",
+      "documents_of_title",
+      "equipment",
+      "intangibles",
+      "inventory",
+      "investment_securities",
+      "livestock",
+      "motor_vehicle",
+      "negotiable_instruments",
+      "other_goods",
+      "intellectual_property"
+    ],
+    "statute_ref": "Personal Property Securities Act 2009 (Cth)"
+  },
+  "holidays_file": "config/jurisdictions/au_holidays.json"
+}

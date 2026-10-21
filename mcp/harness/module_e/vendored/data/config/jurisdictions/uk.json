@@ -1,0 +1,58 @@
+{
+  "code": "uk",
+  "name": "United Kingdom",
+  "currency": "GBP",
+  "interest": {
+    "prescribed_rate": "8.00",
+    "day_count_convention": "actual_365_fixed",
+    "statute_ref": "Late Payment of Commercial Debts (Interest) Act 1998"
+  },
+  "limitation_periods": {
+    "contract": 6,
+    "tort": 6,
+    "negligence": 6,
+    "debt": 6,
+    "defamation": 1,
+    "personal_injury": 3,
+    "land": 12,
+    "judgment": 6,
+    "equity": 6
+  },
+  "statutory_demand": {
+    "prescribed_minimum": "750.00",
+    "compliance_period_working_days": 21,
+    "statute_ref": "Insolvency Act 1986 s 123"
+  },
+  "penalty_clause": {
+    "ratio_thresholds": {
+      "low": "1.0",
+      "moderate": "1.5",
+      "high": "3.0"
+    },
+    "statute_ref": "Cavendish Square Holding BV v Makdessi [2015] UKSC 67"
+  },
+  "solvency": {
+    "warning_threshold": "0.30",
+    "critical_threshold": "0.50",
+    "statute_ref": "Consumer Credit Act 1974"
+  },
+  "security_interest": {
+    "valid_collateral_types": [
+      "accounts_receivable",
+      "all_present_and_after_acquired_property",
+      "chattel_paper",
+      "consumer_goods",
+      "equipment",
+      "intangibles",
+      "inventory",
+      "investment_securities",
+      "motor_vehicle",
+      "negotiable_instruments",
+      "other_goods",
+      "intellectual_property",
+      "financial_collateral"
+    ],
+    "statute_ref": "Companies Act 2006 Part 25 / Law of Property Act 1925"
+  },
+  "holidays_file": "config/jurisdictions/uk_holidays.json"
+}

@@ -1,0 +1,18 @@
+{
+  "name": "ironfleet-legal",
+  "displayName": "IronFleet Legal",
+  "version": "0.1.0",
+  "description": "NZ legal paralegal for Claude: ingest a matter's documents into a local citation-exact corpus, run the nine-stage multi-agent case pipeline, get court-ready deliverables with verbatim-quote grounding and a full per-run paper trail.",
+  "author": { "name": "IronFleet" },
+  "license": "MIT",
+  "keywords": ["legal", "new-zealand", "law", "paralegal", "rag"],
+  "userConfig": {
+    "consent_local_processing": {
+      "type": "boolean",
+      "title": "Matter data processing consent (required)",
+      "description": "IronFleet keeps your matter corpus, records and deliverables on THIS machine (local store, local Ollama embeddings — nothing egresses from the plugin's own code). Matter text you share in conversation enters your Claude account's context: prefer a Team/Enterprise plan with model training OFF for privileged work.",
+      "required": true,
+      "default": false
+    }
+  }
+}
