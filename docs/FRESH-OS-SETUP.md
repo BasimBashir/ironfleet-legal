@@ -1,5 +1,10 @@
 # Fresh-OS setup — IronFleet Legal from zero
 
+> **Current release:** v0.1.0 (2026-10-21) · repo
+> [BasimBashir/ironfleet-legal](https://github.com/BasimBashir/ironfleet-legal) ·
+> 25 skills (one adapted skill excluded on licence grounds — see ATTRIBUTION.md),
+> 13 agents, 10 mechanical-only MCP tools.
+
 Every step below was executed live on a real Windows 11 box (2026-10-21) and verified
 end-to-end: install → doctor → ingest → the full nine-stage pipeline. Frictions found on
 the way are recorded inline (marked **FRICTION**). macOS/Linux notes where they differ.
@@ -21,11 +26,12 @@ service. The LLM is your own Claude account.
 ## 1. Install the plugin (two commands)
 
 ```bash
-claude plugin marketplace add <you>/ironfleet-legal
+claude plugin marketplace add BasimBashir/ironfleet-legal
 claude plugin install ironfleet-legal@ironfleet-legal --config consent_local_processing=true
 ```
 
-- From a local checkout instead of GitHub: `claude plugin marketplace add ./ironfleet-legal`.
+- From a local checkout instead of GitHub: `claude plugin marketplace add ./ironfleet-legal`
+  (developer workflow — same as publishing your own fork).
 - **FRICTION (recorded):** the consent option is REQUIRED; on CLI ≥ 2.1.281 you can set
   or change it later with `claude plugin configure ironfleet-legal@ironfleet-legal` — on
   older CLIs pass `--config KEY=VALUE` at install time (verified working).
@@ -90,6 +96,11 @@ filings → advice → verify → close); deliverables land in `matters/<ref>/` 
 provenance headers; the run ledger (`run.json` + `trace.jsonl` + `RECORD.md`) lands in
 the same workspace's `runs/`. Expect 25–40 minutes of agent work.
 
+Live verification (2026-10-21, the run that produced this guide): stages land their
+deliverables progressively — `case-summary.md`, `fact-questions.md`, `research-memo.md`,
+`case-theory.md` were on disk mid-run with the `runs/` ledger writing alongside. The
+full nine-stage completion record lands here when the verification run finishes.
+
 ## 7. Headless / CI driving (optional, how this was verified)
 
 ```bash
@@ -107,7 +118,7 @@ child process. Otherwise run `claude /login` once interactively.
 
 ## Claude Desktop / Cowork
 
-Customize → Plugins → **Add marketplace** → `<you>/ironfleet-legal` → Install. Cowork
+Customize → Plugins → **Add marketplace** → `BasimBashir/ironfleet-legal` → Install. Cowork
 runs the local stdio MCP because the session is on your machine; claude.ai chat ignores
 local MCP servers (skills and agents still work there, with the corpus honestly
 degraded — drafts carry `[NO CORPUS STORE — attach documents directly]`).
