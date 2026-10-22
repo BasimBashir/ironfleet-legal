@@ -1,4 +1,9 @@
 # src/harness/vectors.py
+# VENDOR NOTE — copied from harness-core src/harness/vectors.py (IronFleet programme).
+# One delta, found live on fresh Ubuntu 2026-10-22: the harness venv always had pydantic
+# installed, so `from pydantic import BaseModel` for the 3-field SearchHit never bit —
+# on a bare box it broke server BOOT (a hardcoded third-party import for a data holder).
+# SearchHit is now a stdlib dataclass; byte-identical attribute access everywhere.
 """A-4 thin local vector index — NOW on sqlite-vec (R1 plan Task 4, spec 14 D4).
 
 The S7e interface is unchanged (add/search/count, per-matter confidentiality); the
@@ -17,13 +22,13 @@ from __future__ import annotations
 
 import sqlite3
 from array import array
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 
-from pydantic import BaseModel
 
-
-class SearchHit(BaseModel):
+@dataclass
+class SearchHit:
     seq: int
     text: str
     score: float

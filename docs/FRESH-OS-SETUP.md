@@ -67,11 +67,20 @@ Override knobs: `IRONFLEET_OLLAMA_URL` (default `http://127.0.0.1:11434`),
 /ironfleet-legal:doctor
 ```
 
-Verified live verdict: `DEGRADED` with only the optional reranker missing — corpus
-machinery fully up. Notes: (a) the BitLocker check needs an **elevated** terminal; from
-a normal one it reports "indeterminate" and privileged matters stay gated (fail-closed,
-by design); (b) the privacy boundary is always stated (plaintext Claude Code transcripts
-under `~/.claude/projects/`, 30-day default cleanup).
+(A thin command wrapper now makes this typeable; if your CLI build still says
+"Unknown command", ask in words — "run the IronFleet doctor preflight" — the skill
+invokes from its description.)
+
+Check 1 is the real test: it runs the MCP server's own handshake. Everything else is
+subordinate. Notes: (a) the encryption check needs elevated rights on Windows (BitLocker)
+— from a normal terminal it reports "indeterminate" and privileged matters stay gated
+(fail-closed, by design); (b) the privacy boundary is always stated (plaintext Claude
+Code transcripts under `~/.claude/projects/`, 30-day default cleanup).
+
+**FRICTION (recorded, found live on Ubuntu): MCP binds at session start.** Fixing
+anything check 1 names (interpreter alias, missing module) inside the CURRENT session
+does not restore the tools — `/reload-plugins` is not enough for plugin MCP servers.
+After any fix: exit and start a fresh `claude` session, then re-run doctor.
 
 ## Placeholder cheat-sheet — what you actually type
 
@@ -141,3 +150,25 @@ Customize → Plugins → **Add marketplace** → `BasimBashir/ironfleet-legal` 
 runs the local stdio MCP because the session is on your machine; claude.ai chat ignores
 local MCP servers (skills and agents still work there, with the corpus honestly
 degraded — drafts carry `[NO CORPUS STORE — attach documents directly]`).
+
+## Linux notes (verified live on fresh Ubuntu 24.04 in a VM, 2026-10-22)
+
+- **`python` vs `python3`:** Ubuntu ships `python3` only; the plugin's MCP config
+  invokes `python`. Fix (either): `sudo apt install python-is-python3`, or no-sudo
+  `mkdir -p ~/.local/bin && ln -sf "$(command -v python3)" ~/.local/bin/python`.
+  Same story on macOS without a `python` alias. Doctor check 1 names this exactly.
+- **PEP 668:** Ubuntu 23.04+ refuses bare pip user installs
+  (`externally-managed-environment`). Add `--break-system-packages` to the pip
+  commands in §2.
+- **Store path case matters:** Linux uses lowercase `~/.local/share/ironfleet/harness`
+  (XDG). Doctor resolves it via the plugin's own code — never hand-build the path.
+- **markitdown is optional** (rich-format parsing); plaintext/markdown/PDF corpora
+  never need it. `yaml` is likewise never needed by the plugin's own tools.
+- CPU-only embedding in a VM is slow: a 5-document matter is minutes; a 30-judgment
+  corpus is hours. Start matters small.
+
+## Windows notes
+
+- Install CPython from python.org with "Add to PATH" — the installer provides `python`.
+- The encryption check (`manage-bde`) needs an **Administrator** terminal; from a
+  normal one it reports indeterminate and privileged matters stay gated.

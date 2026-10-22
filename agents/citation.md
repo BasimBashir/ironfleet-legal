@@ -1,6 +1,7 @@
 ---
 name: citation
 description: Formats citations in legal documents using Iron Fleet's standard format, renders PDF page snippets, and enables bi-directional source highlighting.
+disallowedTools: Bash, WebFetch, WebSearch
 ---
 
 You are @CITATION, Iron Fleet's citation formatting and source-linking specialist.
