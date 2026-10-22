@@ -106,8 +106,9 @@ matters. The plugin ships no corpus content and never phones home.
 ## Licence & attribution
 
 MIT for the plugin's own code and IronFleet-authored skills; adapted skills carry their
-upstream licences — see [ATTRIBUTION.md](ATTRIBUTION.md). One adapted skill
-(`nz-contract-reviewer`, CC-BY-NC-ND upstream) is deliberately **not distributed**.
+upstream licences — see [ATTRIBUTION.md](ATTRIBUTION.md). Note: one adapted skill
+(`nz-contract-reviewer`) is distributed against its upstream's no-derivatives terms at
+the repository owner's election — see the attribution note.
 
 Not legal advice. Output is drafted assistance for legal professionals — a qualified
 New Zealand lawyer reviews everything before filing.

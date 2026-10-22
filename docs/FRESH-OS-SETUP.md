@@ -2,8 +2,9 @@
 
 > **Current release:** v0.1.0 (2026-10-21) · repo
 > [BasimBashir/ironfleet-legal](https://github.com/BasimBashir/ironfleet-legal) ·
-> 25 skills (one adapted skill excluded on licence grounds — see ATTRIBUTION.md),
-> 13 agents, 10 mechanical-only MCP tools.
+> 26 skills (one adapted skill is distributed against its upstream's no-derivatives
+> terms at the repo owner's election — see ATTRIBUTION.md), 13 agents, 10
+> mechanical-only MCP tools.
 
 Every step below was executed live on a real Windows 11 box (2026-10-21) and verified
 end-to-end: install → doctor → ingest → the full nine-stage pipeline. Frictions found on

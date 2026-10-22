@@ -19,6 +19,7 @@ against each repository on 2026-10-21:
 |---|---|---|
 | summariser | anthropics/knowledge-work-plugins | Apache-2.0 |
 | affidavit-formatter | anthropics/knowledge-work-plugins | Apache-2.0 |
+| nz-contract-reviewer | lawvable/awesome-legal-skills | **CC-BY-NC-ND-4.0** ⚠ |
 | nz-property-based-testing | trailofbits/skills | CC-BY-SA-4.0 |
 | nz-differential-review | trailofbits/skills | CC-BY-SA-4.0 |
 | nz-memory-systems | muratcankoylan/Agent-Skills-for-Context-Engineering | MIT |
@@ -28,10 +29,12 @@ against each repository on 2026-10-21:
 | nz-varlock | wrsmith108/varlock-claude-skill | MIT |
 | nz-kreuzberg-ingestor | kreuzberg-dev/kreuzberg | MIT |
 
-**Not distributed:** an `nz-contract-reviewer` skill adapted from
-lawvable/awesome-legal-skills (CC-BY-NC-ND-4.0, no-derivatives) exists in the source
-programme but is **excluded from this distribution** — its licence does not permit
-redistribution of adaptations. It may return as a from-scratch rewrite.
+⚠ **nz-contract-reviewer:** the upstream licence is non-commercial, **no-derivatives** —
+it does not permit redistribution of adapted versions, commercially or otherwise. This
+adaptation is distributed **at the repository owner's election** against those terms
+(decision recorded 2026-10-23); the warning is carried in the skill's own metadata. It
+will be removed promptly on an upstream request, and a from-scratch rewrite remains the
+clean long-term path.
 
 CC-BY-SA-4.0 skills (nz-property-based-testing, nz-differential-review) are licensed
 CC-BY-SA-4.0 as adapted; share-alike applies to those files.
