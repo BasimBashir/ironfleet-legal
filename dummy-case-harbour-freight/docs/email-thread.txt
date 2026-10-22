@@ -1,0 +1,52 @@
+SYNTHETIC FIXTURE — fictional email correspondence for plugin testing only
+
+From: r.tait@harbourfreight.example
+To: accounts@southernhaulage.example
+Date: 9 December 2024, 10:22
+Subject: Statement SH-2024-112
+
+Thanks for the statement. We are not questioning the charges, the numbers are right.
+Our big retailer receivable is stuck in a dispute and until it clears we cannot pay
+the November figure. Roll it into the new year please. Rangi Tait, Finance Manager,
+Harbour Freight Solutions Ltd (fictional).
+
+From: accounts@southernhaulage.example
+To: r.tait@harbourfreight.example
+Date: 12 March 2025, 15:47
+Subject: Overdue account — SH-2024-112 and SH-2025-030
+
+Your account is now significantly overdue: $64,000 from December and $84,000 due
+April, plus the old $22,000 from 2019 which we have also located. Default interest
+continues under the agreement. Please propose payment by return.
+
+From: r.tait@harbourfreight.example
+To: accounts@southernhaulage.example
+Date: 13 March 2025, 09:03
+Subject: re: Overdue account
+
+The 2019 one is a surprise, we thought that was written off years ago. We will take
+advice on it. The recent amounts we accept, we just need time, our warehouse landlord
+is squeezing us and our own customers are slow. This is timing, not a dispute.
+
+From: accounts@southernhaulage.example
+To: r.tait@harbourfreight.example
+Date: 28 July 2026, 11:30
+Subject: Final demand before enforcement
+
+Despite repeated requests, nothing has been paid since March 2025. The account now
+stands at $170,000 in principal across three statements, plus default interest at 26%
+per annum which we reserve. Pay $50,000 by 14 August 2026 and confirm a programme for
+the balance, failing which we will treat the debt as overdue and take whatever steps
+we consider appropriate, including statutory demand under the Companies Act 1993.
+All rights reserved.
+
+From: r.tait@harbourfreight.example
+To: accounts@southernhaulage.example
+Date: 3 August 2026, 16:12
+Subject: re: Final demand before enforcement
+
+We have paid $22,000 today as a gesture while our receivable settles, please credit
+it wherever you like. On the 2019 statement, we maintain that one is stale, six years
+old, surely there is a time limit on coming after old debts. The rest we accept in
+full and will pay as our money lands. No point suing us, there is a bank all over
+everything we own.

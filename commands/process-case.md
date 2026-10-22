@@ -28,10 +28,18 @@ agent starts fresh and reads ONLY what it needs.
 ## The stages (run in order; each agent writes its own deliverable)
 
 For EVERY stage: call `ironfleet_log_event` (stage start, agent name) → dispatch the
-subagent → prepend the provenance header from `ironfleet_provenance` (stage, agent,
-sources = files it read, corpus_refs = the [E.n.S.n] refs it used) to the deliverable →
-`ironfleet_log_event` (stage end, file path + a 1-line digest). You read digests, not
-full files; hand the next agent the file PATHS.
+subagent → **verify the deliverable file EXISTS on disk** — if the agent returned its
+content inline without writing (models do this), write it yourself from its returned
+text and say so in the trace — → prepend the provenance header from
+`ironfleet_provenance` (stage, agent, sources = files it read, corpus_refs = the
+[E.n.S.n] refs it used) to the deliverable → `ironfleet_log_event` (stage end, file
+path + a 1-line digest). You read digests, not full files; hand the next agent the
+file PATHS.
+
+**Keep stage agents from stalling on big inputs:** if the cumulative input files exceed
+~60 KB, brief the subagent with TARGETED line ranges (the section tables, the paths
+that matter, the assumption register) and a word budget, never three whole files — an
+agent that reads everything before writing anything never writes.
 
 1. **intake** — agent `ironfleet-legal:ingestor` → `case-summary.md` (+`fact-questions.md`):
    Extract every case fact the ask states (parties, dates, agreements, registrations,

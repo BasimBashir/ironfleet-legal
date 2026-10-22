@@ -1,0 +1,35 @@
+SYNTHETIC FIXTURE — fictional PPSR search results for plugin testing only
+
+PERSONAL PROPERTY SECURITIES REGISTER (fictional extract, figures invented)
+
+Search reference: registration details for HARBOUR FREIGHT SOLUTIONS LTD (fictional),
+debtor business number 0000000.
+
+Financing statement 1 — registered 10 January 2024 by Pacific Trade Bank Ltd
+(fictional): general security agreement over all present and after-acquired personal
+property of the debtor; serial-numbered collateral: none. Registration: continues
+until 10 January 2029. The bank's security agreement is dated 10 January 2024 and
+covers the debtor's fleet, receivables, inventory and equipment. Priority: first to
+register; no defects recorded.
+
+Financing statement 2 — registered 8 April 2025 by Southern Haulage Ltd (fictional):
+collateral class "other" described as warehouse equipment, pallets, cages and
+strapping, plus accounts arising under a supply agreement; no serial-numbered
+collateral. The Supplier's supply agreement with the debtor is dated 1 January 2019
+(twelve-month continuing terms) and the equipment the statement describes has been
+delivered to and used by the debtor since early 2019, with ongoing deliveries
+throughout 2024 and 2025. The Supplier instructs that its financing statement was
+prepared by a new bookkeeper in April 2025 after the 2024-2025 payment defaults
+surfaced; nothing had previously been registered. Registration: continues until
+8 April 2027.
+
+Financing statement 3 — registered 22 May 2025 by Meridian Office Fitout Ltd
+(fictional), unrelated fitout creditor, collateral: office furniture at one premises;
+immaterial to this matter but appears on any all-property search.
+
+No other financing statements are registered against the debtor. Any liquidator
+analysis must take the bank's prior all-property interest as the dominant secured
+position and must test every other statement against the timing rules for
+perfection against third parties, including the twenty-business-day rule for
+registration after attachment and the consequences of missing that window in an
+insolvency.

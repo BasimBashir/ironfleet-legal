@@ -103,9 +103,15 @@ key the corpus, the workspace and the run history off it.
 
 ## 5. Ingest a matter
 
+The repo ships a complete test fixture — [dummy-case-harbour-freight/](../dummy-case-harbour-freight/)
+with [TEST-CHECKLIST.md](../dummy-case-harbour-freight/TEST-CHECKLIST.md) (synthetic
+parties, checkable ground truths). Copy it onto the machine and run:
+
 ```
-/ironfleet-legal:ingest <folder-or-file> matter: <colon-free-ref>
+/ironfleet-legal:ingest dummy-case-harbour-freight/docs matter: harbour-freight
 ```
+
+Generic form: `/ironfleet-legal:ingest <folder-or-file> matter: <colon-free-ref>`
 
 Verified live: 5 markdown/text docs → 10 chunks, sha256-idempotent, zero skips.
 **FRICTION (recorded):** files under 200 words are RECORDED-AND-SKIPPED (the
@@ -116,8 +122,13 @@ raw text) in a killable subprocess; a hang is skipped, never stuck.
 ## 6. Run the pipeline
 
 ```
-/ironfleet-legal:process-case process my docs — can I win, and how do I file? matter: <ref>
+/ironfleet-legal:process-case Our client Southern Haulage Ltd is owed money by Harbour
+Freight Solutions Ltd. Advise: can we win, what do we file, and how do we minimise
+damage given the bank? matter: harbour-freight
 ```
+
+Generic form: `/ironfleet-legal:process-case <your ask> matter: <ref>` — grade the run
+against the checklist's seven ground truths.
 
 One prompt in; nine agent stages out (intake → research → strategy → attack → assess →
 filings → advice → verify → close); deliverables land in `matters/<ref>/` with

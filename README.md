@@ -37,13 +37,60 @@ Claude Desktop / Cowork: Customize → Plugins → **Add marketplace** →
 `BasimBashir/ironfleet-legal` → Install. Full first-run walkthrough:
 [docs/FRESH-OS-SETUP.md](docs/FRESH-OS-SETUP.md).
 
-## First run
+## Commands
 
-1. `/ironfleet-legal:doctor` — verifies Python, sqlite-vec, Ollama + bge-m3 (optional
-   reranker), store writability and volume encryption, and prints the exact fix command
-   for anything missing.
-2. Drop your matter documents in a folder and `/ironfleet-legal:ingest <folder>`.
-3. `/ironfleet-legal:process-case process my docs — can I win, and how do I file?`
+The plugin ships three commands (type `/ironfleet-legal:` in a session to see them).
+A complete worked example lives in this repo:
+[dummy-case-harbour-freight/](dummy-case-harbour-freight/) — five synthetic case
+documents engineered with checkable traps (a time-barred invoice, a voidable-preference
+payment, a late PPSA registration, a penalty-rate clause), plus
+[TEST-CHECKLIST.md](dummy-case-harbour-freight/TEST-CHECKLIST.md) with the ground truths
+to grade the output against. Copy that folder onto any machine and run the sequence
+below end to end.
+
+### `/ironfleet-legal:doctor` — preflight
+
+Verifies the corpus machinery on this machine: MCP server boot (the real test), Python,
+sqlite-vec, Ollama + bge-m3, optional reranker, store writability, volume encryption —
+and prints the EXACT fix command for anything missing.
+
+```
+/ironfleet-legal:doctor
+```
+
+Example verdict: `DEGRADED — corpus machinery fully up; optional reranker down (search
+degrades to fusion order); volume encryption indeterminate from a non-admin shell
+(privileged matters gated until confirmed)`.
+
+### `/ironfleet-legal:ingest <path> [matter: <ref>]` — documents into the corpus
+
+```
+/ironfleet-legal:ingest dummy-case-harbour-freight/docs matter: harbour-freight
+```
+
+Expected on the dummy case: 5 files, ~10 chunks, 0 skipped (point at the `docs/`
+subfolder — TEST-CHECKLIST.md is the answer key and must NOT be ingested). Re-running
+is free (sha256 resume). Scanned/no-text files are recorded-and-skipped, never silently
+embedded.
+
+### `/ironfleet-legal:process-case <your ask> matter: <ref>` — the whole crew
+
+```
+/ironfleet-legal:process-case Our client Southern Haulage Ltd is owed money by Harbour
+Freight Solutions Ltd. Advise: can we win, what do we file, and how do we minimise
+damage given the bank? matter: harbour-freight
+```
+
+One prompt in, nine agent stages out: intake → research → strategy → attack (opposing
+counsel) → assess (win probability, PROCEED vs MINIMUM-DAMAGE) → filings roadmap →
+advice letter → citation check → close. On the dummy case, a correct run: excludes the
+time-barred 2019 invoice, flags the 3 Aug 2026 payment as voidable-preference exposure
+(Insolvency Act ss 292/296), catches the late PPSA registration (s 40's 20-business-day
+window), tests the 26% rate against penalty doctrine, validates any statutory demand
+through the kernel ($1,000 minimum; 15 working days), and marks every authority not in
+your corpus `[NOT IN CORPUS]`. Deliverables land in `matters/harbour-freight/` with
+provenance headers; the run ledger (`run.json`, `trace.jsonl`, `RECORD.md`) lands in
+`runs/`.
 
 A typical case takes 25–40 minutes of agent work on a Max plan. Expect one checkpoint
 question at most — the crew proceeds on recorded assumptions otherwise.

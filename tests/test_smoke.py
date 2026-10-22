@@ -106,6 +106,28 @@ def test_records_never_blocks_on_bad_run():
     assert records.log("nope-404", "x", {}, matter="m")["ok"] is False
 
 
+def test_records_index_resolves_without_workspace(tmp_path, monkeypatch):
+    """Later calls must resolve the run WITHOUT workspace re-passed (found live
+    2026-10-22: the orchestrator burned calls on 'unknown run_id' otherwise)."""
+    monkeypatch.setenv("HARNESS_HOME", str(tmp_path))
+    r = records.begin_run("m-idx", "p", workspace=str(tmp_path / "ws"))
+    out = records.log(r["run_id"], "note", {"x": 1})      # no matter, no workspace
+    assert out["ok"] is True
+    done = records.finish_run(r["run_id"], "complete", workspace=str(tmp_path / "ws"))
+    assert done["ok"] is True
+
+
+def test_provenance_resolves_relative_sources(tmp_path):
+    """Agents name sources relatively (found live 2026-10-22: every sha256 came back
+    'absent'); the header must hash them against the workspace."""
+    ws = tmp_path / "ws"
+    ws.mkdir()
+    (ws / "a.md").write_text("evidence", encoding="utf-8")
+    out = records.provenance_header("r-9", "attack", "adversary",
+                                    sources=["a.md"], workspace=str(ws))
+    assert "absent" not in out["header"]
+
+
 def test_provenance_header_carries_sha():
     src = Path(__file__)
     out = records.provenance_header("r-1", "research", "hunter", sources=[str(src)])

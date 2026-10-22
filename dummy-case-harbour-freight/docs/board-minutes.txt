@@ -1,0 +1,35 @@
+SYNTHETIC FIXTURE — fictional board minutes for plugin testing only
+
+HARBOUR FREIGHT SOLUTIONS LTD (fictional) — MINUTES OF DIRECTORS, 18 September 2026
+(drafted for software testing; invented)
+
+Present: R. Tait (Finance Manager, attending), J. Karero (Director), P. Shaw
+(Director). Apologies: none.
+
+1. FINANCIAL POSITION. The Finance Manager reported: trade creditors approximately
+$410,000 including $148,000 of principal owed to Southern Haulage Ltd across the
+recent statements; the company's single large retailer receivable of $260,000
+remains unresolved and is now subject to a mediation set down for late November
+2026; the Westpac-substitute trading overdraft (fictional) is permanently at its
+$150,000 limit; the company has not paid PAYE on time since July 2026. The board
+records that the company has been relying on that receivable to stay current since
+March 2025 and cannot pay its debts as they fall if the mediation fails.
+
+2. BANK SECURITY. Pacific Trade Bank Ltd (fictional) holds an all-assets general
+security agreement registered in January 2024. The bank has issued a request for
+monthly management accounts and indicated it will not advance further funds. The
+board notes the bank's first-ranking position is acknowledged and is not in dispute.
+
+3. RELATED PARTY. The company's 40% shareholder, Harbour Holdings Ltd (fictional),
+is itself under pressure: its other subsidiary received a statutory demand in
+August 2026. The board does not expect a shareholder injection.
+
+4. SOUTHERN HAULAGE. The board confirms the supply charges for 2024 and 2025 are
+properly payable and that the $22,000 paid on 3 August 2026 was made to keep the
+Supplier engaged while the receivable mediation proceeds. The 2019 statement is
+regarded by the Finance Manager as doubtful on grounds of age rather than merits.
+The board records no set-off or cross-claim against the Supplier.
+
+5. NEXT STEPS. If the mediation fails, the directors will take insolvency advice;
+liquidation rather than receivership is the likely route given the secured bank
+position. Minutes approved and adopted.

@@ -2,7 +2,7 @@
   "hooks": {
     "PostToolUse": [
       {
-        "matcher": "mcp__plugin_ironfleet-legal_ironfleet__ironfleet_begin_run",
+        "matcher": "ironfleet_begin_run$",
         "hooks": [
           {
             "type": "command",

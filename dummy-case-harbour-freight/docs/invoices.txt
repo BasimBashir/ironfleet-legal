@@ -1,0 +1,27 @@
+SYNTHETIC FIXTURE — fictional invoices for plugin testing only (no real parties or debts)
+
+SOUTHERN HAULAGE LTD (fictional) — STATEMENTS TO HARBOUR FREIGHT SOLUTIONS LTD (fictional)
+
+Statement SH-2019-021 (issued 15 February 2019, No. SH-2019-021): line-haul and
+devanning for January 2019, $22,000 plus GST. Due 20 March 2019 under clause 3 of the
+supply agreement. The Customer queried two line items at the time, then went quiet;
+the amount was never paid and no further correspondence followed until 2026. The
+Supplier's bookkeeper concedes the file was "lost in a drawer" for years.
+
+Statement SH-2024-112 (issued 5 November 2024, No. SH-2024-112): line-haul, bonded
+storage and pallet hire for October 2024, $64,000 plus GST. Due 20 December 2024.
+Not paid. The Customer acknowledged it by email on 9 December 2024 and asked to
+"roll it into the new year".
+
+Statement SH-2025-030 (issued 2 March 2025, No. SH-2025-030): line-haul, devanning
+and warehousing for February 2025, $84,000 plus GST. Due 20 April 2025. Not paid.
+This was the last statement the Customer accepted without comment; from mid-2025 the
+Customer stopped engaging with statements altogether.
+
+On 3 August 2026, after the Supplier threatened enforcement, the Customer paid
+$22,000 by direct credit referencing "on account". The Supplier's ledger applies
+that receipt to Statement SH-2024-112, leaving (on the Supplier's figures) $42,000
+outstanding on SH-2024-112, $84,000 on SH-2025-030, and the old $22,000 on SH-2019-021
+untouched. Default interest at 26% per annum is claimed from each due date and is NOT
+included in any of these principal figures; any statutory demand will state principal
+only. GST-inclusive totals, if needed, are principal figures multiplied by 1.15.

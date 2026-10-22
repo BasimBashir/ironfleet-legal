@@ -31,6 +31,37 @@ def _run_dir(runs: Path, run_id: str) -> Path:
     return d
 
 
+def _index(run_id: str, d: Path) -> None:
+    """run_id -> run_dir pointer at the store root (found live 2026-10-22: the
+    orchestrator must re-pass `workspace` on EVERY later call otherwise the run is
+    'unknown' — state does not persist between MCP calls)."""
+    try:
+        root, _source = resolve_store_root()
+        idx = Path(root) / "runs" / ".index"
+        idx.mkdir(parents=True, exist_ok=True)
+        (idx / f"{run_id}.json").write_text(
+            json.dumps({"run_dir": str(d)}), encoding="utf-8")
+    except Exception:                                  # noqa: BLE001 — ledger never blocks
+        pass
+
+
+def _resolve(run_id: str, matter: str, workspace: str | None) -> Path:
+    """The run dir by (matter, workspace) — or via the store-root index (fallback for
+    calls that omit workspace; the pointer is written at begin_run)."""
+    try:
+        return _find(runs_root(matter, workspace), run_id)
+    except RuntimeError:
+        try:
+            root, _source = resolve_store_root()
+            hit = Path(root) / "runs" / ".index" / f"{run_id}.json"
+            d = Path(json.loads(hit.read_text(encoding="utf-8"))["run_dir"])
+            if (d / "run.json").exists():
+                return d
+        except Exception:                              # noqa: BLE001 — fall through
+            pass
+        raise
+
+
 def begin_run(matter: str, prompt: str, workspace: str | None = None,
               stages: list[str] | None = None) -> dict:
     run_id = f"{datetime.now().strftime('%Y%m%d')}-{secrets.token_hex(3)}"
@@ -42,6 +73,7 @@ def begin_run(matter: str, prompt: str, workspace: str | None = None,
            "session_id": None, "transcript_path": None,
            "checkpoints": [], "deliverables": []}
     (d / "run.json").write_text(json.dumps(run, indent=2), encoding="utf-8")
+    _index(run_id, d)
     log(run_id, "run_started", {"matter": matter}, d=d)
     return {"run_id": run_id, "run_dir": str(d)}
 
@@ -58,7 +90,7 @@ def log(run_id: str, event: str, payload: dict | None = None,
     """Append one trace event. Safe against a missing run: an error dict, never a raise —
     a broken ledger must not break the legal work."""
     try:
-        d = d or _find(runs_root(matter, workspace), run_id)
+        d = d or _resolve(run_id, matter, workspace)
         line = {"ts": datetime.now(timezone.utc).isoformat(), "event": event,
                 **(payload or {})}
         with (d / "trace.jsonl").open("a", encoding="utf-8") as fh:
@@ -72,7 +104,7 @@ def attach_session(run_id: str, session_id: str, transcript_path: str,
                    matter: str = "", workspace: str | None = None) -> dict:
     """Patch run.json with the native session identity (the PreToolUse hook calls this
     at the run's first tool call — the full-transcript replay link, captured at start)."""
-    d = _find(runs_root(matter, workspace), run_id)
+    d = _resolve(run_id, matter, workspace)
     run = json.loads((d / "run.json").read_text(encoding="utf-8"))
     run["session_id"] = session_id
     run["transcript_path"] = transcript_path
@@ -82,7 +114,7 @@ def attach_session(run_id: str, session_id: str, transcript_path: str,
 
 def checkpoint(run_id: str, question: str, answer: str,
                matter: str = "", workspace: str | None = None) -> dict:
-    d = _find(runs_root(matter, workspace), run_id)
+    d = _resolve(run_id, matter, workspace)
     run = json.loads((d / "run.json").read_text(encoding="utf-8"))
     run["checkpoints"].append({"question": question, "answer": answer})
     (d / "run.json").write_text(json.dumps(run, indent=2), encoding="utf-8")
@@ -92,7 +124,7 @@ def checkpoint(run_id: str, question: str, answer: str,
 
 def finish_run(run_id: str, status: str, deliverables: list[str] | None = None,
                summary: str = "", matter: str = "", workspace: str | None = None) -> dict:
-    d = _find(runs_root(matter, workspace), run_id)
+    d = _resolve(run_id, matter, workspace)
     run = json.loads((d / "run.json").read_text(encoding="utf-8"))
     run["status"] = status
     run["ended"] = datetime.now(timezone.utc).isoformat()
@@ -128,8 +160,11 @@ def provenance_header(run_id: str, stage: str, agent: str, model: str = "claude"
     """The front-matter block every deliverable carries — 'where did this come from'
     without opening a database. Sources are hashed so the chain is checkable."""
     def _sha(p: str) -> str:
-        try:
-            return hashlib.sha256(Path(p).read_bytes()).hexdigest()[:16]
+        path = Path(p)
+        if workspace and not path.is_absolute():
+            path = Path(workspace) / path     # agents name sources relatively (found
+        try:                                  # live 2026-10-22: everything hashed "absent")
+            return hashlib.sha256(path.read_bytes()).hexdigest()[:16]
         except OSError:
             return "absent"
     rows = "\n".join(f"  - path: {s}{chr(10)}    sha256_16: {_sha(s)}"
