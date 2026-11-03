@@ -5,7 +5,7 @@
   "interest": {
     "prescribed_rate": "8.00",
     "day_count_convention": "actual_365_fixed",
-    "statute_ref": "Late Payment of Commercial Debts (Interest) Act 1998"
+    "statute_ref": "Late Payment of Commercial Debts (Interest) Act 1998 (8% + Bank of England base rate)"
   },
   "limitation_periods": {
     "contract": 6,
@@ -20,8 +20,10 @@
   },
   "statutory_demand": {
     "prescribed_minimum": "750.00",
-    "compliance_period_working_days": 21,
-    "statute_ref": "Insolvency Act 1986 s 123"
+    "compliance_period_days": 21,
+    "compliance_period_day_type": "calendar",
+    "statute_ref": "Insolvency Act 1986 s 123(1)(a)",
+    "compliance_statute_ref": "Insolvency Act 1986 s 123(1)(a)"
   },
   "penalty_clause": {
     "ratio_thresholds": {
@@ -53,6 +55,9 @@
       "financial_collateral"
     ],
     "statute_ref": "Companies Act 2006 Part 25 / Law of Property Act 1925"
+  },
+  "without_prejudice": {
+    "privilege_statute_ref": "Common law without prejudice privilege"
   },
   "holidays_file": "config/jurisdictions/uk_holidays.json"
 }

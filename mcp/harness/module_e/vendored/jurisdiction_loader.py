@@ -31,8 +31,10 @@ class JurisdictionConfig:
     interest_statute_ref: str
     limitation_periods: dict[str, int]
     statutory_demand_minimum: Decimal
-    compliance_period_working_days: int
+    compliance_period_days: int
+    compliance_period_day_type: str      # "working" (nz) | "calendar" (au/uk)
     statutory_demand_statute_ref: str
+    statutory_demand_compliance_statute_ref: str
     penalty_ratio_thresholds: dict[str, Decimal]
     penalty_statute_ref: str
     solvency_warning_threshold: Decimal
@@ -40,6 +42,7 @@ class JurisdictionConfig:
     solvency_statute_ref: str
     valid_collateral_types: frozenset[str]
     security_interest_statute_ref: str
+    without_prejudice_statute_ref: str
     holidays_file: str
 
 
@@ -108,8 +111,10 @@ class JurisdictionLoader:
         cfg = cls.load(jurisdiction)
         return {
             "prescribed_minimum": cfg.statutory_demand_minimum,
-            "compliance_period_working_days": cfg.compliance_period_working_days,
+            "compliance_period_days": cfg.compliance_period_days,
+            "compliance_period_day_type": cfg.compliance_period_day_type,
             "statute_ref": cfg.statutory_demand_statute_ref,
+            "compliance_statute_ref": cfg.statutory_demand_compliance_statute_ref,
         }
 
     @classmethod
@@ -131,6 +136,12 @@ class JurisdictionLoader:
         """Return valid collateral types for *jurisdiction*."""
         return cls.load(jurisdiction).valid_collateral_types
 
+    @classmethod
+    def get_without_prejudice_rules(cls, jurisdiction: str = "nz") -> dict[str, Any]:
+        """Return without-prejudice privilege rules for *jurisdiction*."""
+        cfg = cls.load(jurisdiction)
+        return {"privilege_statute_ref": cfg.without_prejudice_statute_ref}
+
 
 def _parse_config(raw: dict[str, Any]) -> JurisdictionConfig:
     """Parse a raw JSON dict into a JurisdictionConfig."""
@@ -150,8 +161,10 @@ def _parse_config(raw: dict[str, Any]) -> JurisdictionConfig:
         interest_statute_ref=interest["statute_ref"],
         limitation_periods=dict(lim),
         statutory_demand_minimum=Decimal(sd["prescribed_minimum"]),
-        compliance_period_working_days=int(sd["compliance_period_working_days"]),
+        compliance_period_days=int(sd["compliance_period_days"]),
+        compliance_period_day_type=sd.get("compliance_period_day_type", "working"),
         statutory_demand_statute_ref=sd["statute_ref"],
+        statutory_demand_compliance_statute_ref=sd["compliance_statute_ref"],
         penalty_ratio_thresholds={
             k: Decimal(v) for k, v in pen["ratio_thresholds"].items()
         },
@@ -161,5 +174,6 @@ def _parse_config(raw: dict[str, Any]) -> JurisdictionConfig:
         solvency_statute_ref=sol["statute_ref"],
         valid_collateral_types=frozenset(sec["valid_collateral_types"]),
         security_interest_statute_ref=sec["statute_ref"],
+        without_prejudice_statute_ref=raw["without_prejudice"]["privilege_statute_ref"],
         holidays_file=raw["holidays_file"],
     )

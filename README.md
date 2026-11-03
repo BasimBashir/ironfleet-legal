@@ -46,7 +46,9 @@ documents engineered with checkable traps (a time-barred invoice, a voidable-pre
 payment, a late PPSA registration, a penalty-rate clause), plus
 [TEST-CHECKLIST.md](dummy-case-harbour-freight/TEST-CHECKLIST.md) with the ground truths
 to grade the output against. Copy that folder onto any machine and run the sequence
-below end to end.
+below end to end. The citation check is itself a public benchmark anyone can re-run
+offline in ~1s — [dummy-case-harbour-freight/verify-report.md](dummy-case-harbour-freight/verify-report.md)
+has the command and the current published result.
 
 ### `/ironfleet-legal:doctor` — preflight
 

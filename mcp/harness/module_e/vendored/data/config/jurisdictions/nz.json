@@ -20,8 +20,10 @@
   },
   "statutory_demand": {
     "prescribed_minimum": "1000.00",
-    "compliance_period_working_days": 15,
-    "statute_ref": "Companies Act 1993 s 289"
+    "compliance_period_days": 15,
+    "compliance_period_day_type": "working",
+    "statute_ref": "Companies Act 1993 s 289",
+    "compliance_statute_ref": "Companies Act 1993 s 241(4)(a)"
   },
   "penalty_clause": {
     "ratio_thresholds": {
@@ -54,6 +56,9 @@
       "other_goods"
     ],
     "statute_ref": "Personal Property Securities Act 1999"
+  },
+  "without_prejudice": {
+    "privilege_statute_ref": "Evidence Act 2006 s 57"
   },
   "holidays_file": "config/jurisdictions/nz_holidays.json"
 }

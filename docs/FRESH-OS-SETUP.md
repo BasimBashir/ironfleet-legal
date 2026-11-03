@@ -1,9 +1,9 @@
 # Fresh-OS setup — IronFleet Legal from zero
 
-> **Current release:** v0.1.0 (2026-10-21) · repo
+> **Current release:** v0.3.0 (2026-11-03) · repo
 > [BasimBashir/ironfleet-legal](https://github.com/BasimBashir/ironfleet-legal) ·
 > 26 skills (one adapted skill is distributed against its upstream's no-derivatives
-> terms at the repo owner's election — see ATTRIBUTION.md), 13 agents, 10
+> terms at the repo owner's election — see ATTRIBUTION.md), 13 agents, 14
 > mechanical-only MCP tools.
 
 Every step below was executed live on a real Windows 11 box (2026-10-21) and verified

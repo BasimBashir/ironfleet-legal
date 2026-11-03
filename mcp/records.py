@@ -25,6 +25,24 @@ def runs_root(matter: str, workspace: str | None = None) -> Path:
     return Path(root) / "runs" / re.sub(r"[^A-Za-z0-9_-]", "_", matter)
 
 
+def run_dir_by_id(run_id: str) -> Path:
+    """L2 resources/read: the run dir from the store-root index alone — no matter or
+    workspace needed (the pointer was written at begin_run). run_id joins a path, so
+    it is validated first (a URI from any MCP client is untrusted input)."""
+    if not re.fullmatch(r"[A-Za-z0-9_-]{1,64}", run_id):
+        raise RuntimeError(f"malformed run_id: {run_id!r}")
+    root, _source = resolve_store_root()
+    hit = Path(root) / "runs" / ".index" / f"{run_id}.json"
+    try:
+        pointer = json.loads(hit.read_text(encoding="utf-8"))["run_dir"]
+    except OSError:
+        raise RuntimeError(f"unknown run_id {run_id}") from None
+    d = Path(pointer)
+    if not (d / "run.json").exists():
+        raise RuntimeError(f"unknown run_id {run_id}")
+    return d
+
+
 def _run_dir(runs: Path, run_id: str) -> Path:
     d = runs / run_id
     d.mkdir(parents=True, exist_ok=True)
@@ -175,3 +193,77 @@ def provenance_header(run_id: str, stage: str, agent: str, model: str = "claude"
         f"run_id: {run_id}\nstage: {stage}\nagent: {agent}\nmodel: {model}\n"
         f"date: {datetime.now(timezone.utc).isoformat()}\nsources:\n{rows}\n"
         f"corpus_refs:\n{refs}\n---\n")}
+
+
+def disclosure_block(run_id: str, matter: str = "",
+                     workspace: str | None = None) -> dict:
+    """G4: the 2026 AI-use certification block, rendered mechanically from the run
+    ledger — zero new storage, pure rendering. Self-consistent by construction: a
+    stage is listed only if a stage_end event shows it; tools, verify verdicts and
+    corpus refs render only from tool_result / exception events the run logged."""
+    d = _resolve(run_id, matter, workspace)
+    run = json.loads((d / "run.json").read_text(encoding="utf-8"))
+    events = [json.loads(l) for l in
+              (d / "trace.jsonl").read_text(encoding="utf-8").splitlines() if l.strip()]
+    starts: dict[str, str] = {}
+    stages: list[tuple[str, str, str]] = []
+    tools: list[str] = []
+    refs: list[str] = []
+    verifies: list[dict] = []
+    for e in events:
+        p = {k: v for k, v in e.items() if k not in ("ts", "event")}
+        if e["event"] == "stage_start":
+            starts[str(p.get("stage", ""))] = str(p.get("agent", ""))
+        elif e["event"] == "stage_end":
+            stage = str(p.get("stage") or Path(str(p.get("file", ""))).name
+                        or "(unnamed)")
+            stages.append((stage, starts.get(stage) or str(p.get("agent", "")),
+                           str(p.get("file") or p.get("digest") or "")))
+        elif e["event"] == "tool_result":
+            tool = str(p.get("tool", "(unnamed)"))
+            tools.append(tool)
+            if tool == "ironfleet_verify_document":
+                verifies.append(p)
+            refs.extend(str(r["ref"]) for r in (p.get("refs") or [])
+                        if isinstance(r, dict) and r.get("ref"))
+        elif e["event"] == "exception" and p.get("ref"):
+            refs.append(str(p["ref"]))   # a ruled exception is still a relied-on ref
+    rows = "\n".join(f"- {s} — agent {a or 'unrecorded'} → {f or '(no file recorded)'}"
+                     for s, a, f in stages) or "- none recorded"
+    missing = [s for s in run.get("stages", []) if s not in {t for t, _, _ in stages}]
+    tool_line = ", ".join(f"{t} ×{tools.count(t)}" for t in sorted(set(tools))) \
+        or "none recorded"
+    vlines = "\n".join(f"- {v.get('path', '(path not recorded)')}: ok={v.get('ok')} "
+                       f"summary={v.get('summary', {})}" for v in verifies) \
+        or "- none recorded"
+    ref_lines = "\n".join(f"- {r}" for r in sorted(set(refs))) or "- none recorded"
+    block = f"""## AI-use disclosure (certification of AI use, 2026 rules)
+
+**Run:** {run['run_id']} · matter {run['matter']} · status {run['status']}
+**Period:** started {run['started']} · ended {run.get('ended', '(open)')}
+**Session:** `{run.get('session_id') or 'not captured'}` (replay: `claude --resume <id>`)
+**Model:** {run.get('model') or "claude — the user's own Claude session"}
+
+### Stages executed (each evidenced by a stage_end event in trace.jsonl)
+{rows}
+"""
+    if missing:
+        block += ("\n### Declared but NOT completed (no stage_end event)\n"
+                  + "\n".join(f"- {s}" for s in missing) + "\n")
+    block += f"""
+### Mechanical tools used (tool_result events)
+{tool_line}
+
+### Documents mechanically verified (ironfleet_verify_document)
+{vlines}
+
+### Corpus refs relied on
+{ref_lines}
+
+### Certification
+No AI system made any decision or filing; a named human reviewed and certified
+this document.
+
+Certified by: ____________________________  Signature: ____________________________  Date: ____________
+"""
+    return {"block": block}

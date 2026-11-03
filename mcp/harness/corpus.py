@@ -5,7 +5,9 @@
 # mechanical-only — embeddings go direct to local Ollama, rerank to local llama-server
 # via harness.localstack); (2) the default expand_fn raises instead of dispatching an
 # LLM (Claude does its own multi-query by calling the tool per query); (3) the
-# _default_gate lazy builder is gone for the same reason as (1).
+# _default_gate lazy builder is gone for the same reason as (1); (4) G3 trust tiers —
+# docs carry trust_tier and the authorities list is tier-filtered (source of record
+# has no tier column).
 """R1 (spec 14): the citation-exact legal corpus layer — store, retrieval, composition.
 
 Task 1: the structure-aware splitter, promoted verbatim from the research bench
@@ -102,6 +104,7 @@ class DocRecord:
     doc_id: str
     text: str
     source_name: str
+    trust_tier: str = "T1"      # G3: T0 privileged / T1 open / T2 internal / T3 public
 
 
 @dataclass
@@ -111,6 +114,32 @@ class CorpusHit:
     text: str
     source_name: str
     score: float
+    trust_tier: str = "T1"
+
+
+# G3 trust tiers: T0 privileged (WP-classified, override-gated), T2 privileged
+# (internal case data, operator-reviewed), T1 open (the default), T3 public.
+# QUOTING into a deliverable needs text at least as open as min_tier; READING is
+# unrestricted (passages carry every tier). Unknown values rank below T0 — fail-closed.
+_OPENNESS = {"T0": 0, "T2": 1, "T1": 2, "T3": 3}
+
+
+def quotable_tier(tier: str | None, min_tier: str | None = "T1") -> bool:
+    return _OPENNESS.get(tier, -1) >= _OPENNESS.get(min_tier or "T1", 99)
+
+
+def bound_tier(root: Path, matter_ref: str) -> str | None:
+    """W3: the operator's tier binding for a matter (matter.json at the store root,
+    written by the operator CLI's bind-tier) — the ingest-time default when the call
+    passes no trust_tier. Returned RAW: an unknown bound value ranks below T0
+    downstream (G3), so a corrupt binding fails closed, never silently opens."""
+    try:
+        data = json.loads((Path(root) / "matter.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    if isinstance(data, dict) and isinstance(data.get(matter_ref), dict):
+        return data[matter_ref].get("trust_tier") or None
+    return None
 
 
 def _mtable(matter_ref: str, kind: str) -> str:
@@ -245,15 +274,19 @@ class CorpusStore:
         with self._c() as c:
             c.execute(f"CREATE TABLE IF NOT EXISTS {_mtable(matter_ref, 'docs')}"
                       "(doc_id TEXT PRIMARY KEY, source_name TEXT, sha256 TEXT,"
-                      " words INTEGER, chunk_count INTEGER, ts TEXT)")
+                      " words INTEGER, chunk_count INTEGER, ts TEXT,"
+                      " trust_tier TEXT DEFAULT 'T1')")
+            self._ensure_tier(c, matter_ref)       # legacy tables, in place
             c.execute(f"CREATE VIRTUAL TABLE IF NOT EXISTS {_mtable(matter_ref, 'fts')}"
                       " USING fts5(doc_id, heading, body)")
             c.execute(f"CREATE TABLE IF NOT EXISTS {_mtable(matter_ref, 'cites')}"
                       "(key TEXT, fts_rowid INTEGER, PRIMARY KEY(key, fts_rowid))")
             c.execute(f"INSERT OR REPLACE INTO {_mtable(matter_ref, 'docs')}"
-                      " VALUES(?,?,?,?,?,?)",
+                      "(doc_id, source_name, sha256, words, chunk_count, ts, trust_tier)"
+                      " VALUES(?,?,?,?,?,?,?)",
                       (doc.doc_id, doc.source_name, sha, len(doc.text.split()),
-                       len(chunks), datetime.now(timezone.utc).isoformat()))
+                       len(chunks), datetime.now(timezone.utc).isoformat(),
+                       doc.trust_tier))
             c.execute(f"DELETE FROM {_mtable(matter_ref, 'fts')} WHERE doc_id=?",
                       (doc.doc_id,))
             c.execute(f"DELETE FROM {_mtable(matter_ref, 'cites')} WHERE key IN "
@@ -278,21 +311,36 @@ class CorpusStore:
                               [list(map(float, v)) for v in vectors], model, provider)
         return len(chunks)
 
+    def _ensure_tier(self, c: sqlite3.Connection, matter_ref: str) -> None:
+        """G3 in-place migration (house style: PRAGMA guard + ADD COLUMN, never
+        drop/recreate): pre-G3 docs tables gain trust_tier; existing rows read T1,
+        the column's own DEFAULT. Read paths call this so an upgraded store never
+        searches a pre-G3 table blind."""
+        cols = {r[1] for r in c.execute(
+            f"PRAGMA table_info({_mtable(matter_ref, 'docs')})").fetchall()}
+        if cols and "trust_tier" not in cols:
+            c.execute(f"ALTER TABLE {_mtable(matter_ref, 'docs')}"
+                      " ADD COLUMN trust_tier TEXT DEFAULT 'T1'")
+
     def search_lexical(self, matter_ref: str, query: str, k: int = 20) -> list[CorpusHit]:
         q = _fts_query(query)
         if not q:
             return []
-        try:
-            rows = self._c().execute(
-                f"SELECT f.doc_id, f.heading, f.body, d.source_name, bm25({_mtable(matter_ref, 'fts')})"
-                f" FROM {_mtable(matter_ref, 'fts')} f"
-                f" JOIN {_mtable(matter_ref, 'docs')} d ON d.doc_id = f.doc_id"
-                f" WHERE {_mtable(matter_ref, 'fts')} MATCH ? ORDER BY 5 LIMIT ?",
-                (q, k)).fetchall()
-        except sqlite3.OperationalError:
-            return []
-        return [CorpusHit(doc_id=d, heading=h, text=b, source_name=s, score=-sc)
-                for d, h, b, s, sc in rows]
+        with self._c() as c:
+            self._ensure_tier(c, matter_ref)
+            try:
+                rows = c.execute(
+                    f"SELECT f.doc_id, f.heading, f.body, d.source_name, d.trust_tier,"
+                    f" bm25({_mtable(matter_ref, 'fts')})"
+                    f" FROM {_mtable(matter_ref, 'fts')} f"
+                    f" JOIN {_mtable(matter_ref, 'docs')} d ON d.doc_id = f.doc_id"
+                    f" WHERE {_mtable(matter_ref, 'fts')} MATCH ? ORDER BY 6 LIMIT ?",
+                    (q, k)).fetchall()
+            except sqlite3.OperationalError:
+                return []
+        return [CorpusHit(doc_id=d, heading=h, text=b, source_name=s,
+                          score=-sc, trust_tier=t)
+                for d, h, b, s, t, sc in rows]
 
     def reindex_cites(self, matter_ref: str) -> int:
         """(Re)derive cites_<m> from the stored chunks — keys are pure text, so no
@@ -336,13 +384,56 @@ class CorpusStore:
         reads this (one row per source file: name, words, chunks, when)."""
         try:
             with self._c() as c:
+                self._ensure_tier(c, matter_ref)
                 rows = c.execute(
-                    f"SELECT doc_id, source_name, words, chunk_count, ts"
+                    f"SELECT doc_id, source_name, words, chunk_count, ts, trust_tier"
                     f" FROM {_mtable(matter_ref, 'docs')} ORDER BY ts DESC").fetchall()
         except sqlite3.OperationalError:
             return []
         return [{"doc_id": r[0], "name": r[1], "words": r[2],
-                 "chunks": r[3], "ts": r[4] or ""} for r in rows]
+                 "chunks": r[3], "ts": r[4] or "",
+                 "trust_tier": r[5] or "T1"} for r in rows]
+
+    def matters(self) -> list[str]:
+        """L2 resources/list: the ingested matter keys. D1 keeps no registry row —
+        the per-matter table suffix IS the key (the same string _mtable builds), so
+        names here are the mangled form and a URI round-trips through _mtable."""
+        with self._c() as c:
+            rows = c.execute("SELECT name FROM sqlite_master WHERE type='table'"
+                             " AND name LIKE 'docs\\_%' ESCAPE '\\'").fetchall()
+        return sorted(r[0][len("docs_"):] for r in rows)
+
+    def doc_text(self, matter_ref: str, doc_id: str) -> dict | None:
+        """L2 resources/read: one doc's row plus its full text (the FTS chunks in
+        row order) — the browse unit for a non-Claude MCP client."""
+        with self._c() as c:
+            try:
+                self._ensure_tier(c, matter_ref)
+                row = c.execute(
+                    f"SELECT doc_id, source_name, sha256, words, chunk_count, ts,"
+                    f" trust_tier FROM {_mtable(matter_ref, 'docs')} WHERE doc_id=?",
+                    (doc_id,)).fetchone()
+                if row is None:
+                    return None
+                chunks = c.execute(
+                    f"SELECT body FROM {_mtable(matter_ref, 'fts')}"
+                    " WHERE doc_id=? ORDER BY rowid", (doc_id,)).fetchall()
+            except sqlite3.OperationalError:            # matter never ingested
+                return None
+        return {"doc_id": row[0], "name": row[1], "sha256": row[2], "words": row[3],
+                "chunks": row[4], "ts": row[5] or "", "trust_tier": row[6] or "T1",
+                "text": "\n\n".join(r[0] for r in chunks)}
+
+    def set_tier(self, matter_ref: str, tier: str) -> int:
+        """W3 operator re-classification (the G3 deferred surface): stamp every doc
+        of an already-ingested matter to `tier` — same effect as re-ingesting with
+        trust_tier, without re-parsing or re-embedding. Raises on a matter never
+        ingested (no table); the CLI turns that into a loud report."""
+        with self._c() as c:
+            self._ensure_tier(c, matter_ref)
+            cur = c.execute(f"UPDATE {_mtable(matter_ref, 'docs')} SET trust_tier=?",
+                            (tier,))
+            return cur.rowcount
 
     def drop_matter(self, matter_ref: str) -> None:
         """D for the corpus side (2026-10-14, the matter-CRUD completion): drop the
@@ -371,14 +462,16 @@ class CorpusStore:
         if not rowids:
             return []
         marks = ",".join("?" for _ in rowids)
-        rows = self._c().execute(
-            f"SELECT f.doc_id, f.heading, f.body, d.source_name FROM "
-            f"{_mtable(matter_ref, 'fts')} f JOIN {_mtable(matter_ref, 'docs')} d "
-            f"ON d.doc_id = f.doc_id WHERE f.rowid IN ({marks}) ORDER BY f.rowid",
-            tuple(rowids)).fetchall()
-        return [CorpusHit(doc_id=d, heading=h, text=b, source_name=s,
+        with self._c() as c:
+            self._ensure_tier(c, matter_ref)
+            rows = c.execute(
+                f"SELECT f.doc_id, f.heading, f.body, d.source_name, d.trust_tier FROM "
+                f"{_mtable(matter_ref, 'fts')} f JOIN {_mtable(matter_ref, 'docs')} d "
+                f"ON d.doc_id = f.doc_id WHERE f.rowid IN ({marks}) ORDER BY f.rowid",
+                tuple(rowids)).fetchall()
+        return [CorpusHit(doc_id=d, heading=h, text=b, source_name=s, trust_tier=t,
                           score=1.0 - i / max(1, len(rows)))
-                for i, (d, h, b, s) in enumerate(rows[:k])]
+                for i, (d, h, b, s, t) in enumerate(rows[:k])]
 
     def search_legs(self, matter_ref: str, query_text: str,
                     query_vector: list[float], candidates: int = 20
@@ -446,16 +539,18 @@ class CorpusStore:
         if not hits:
             return out
         with self._c() as c:
+            self._ensure_tier(c, matter_ref)
             for h in hits:
                 row = c.execute(
-                    f"SELECT f.doc_id, f.heading, f.body, d.source_name FROM "
+                    f"SELECT f.doc_id, f.heading, f.body, d.source_name, d.trust_tier FROM "
                     f"{_mtable(matter_ref, 'fts')} f JOIN "
                     f"{_mtable(matter_ref, 'docs')} d ON d.doc_id = f.doc_id "
                     f"WHERE (? = '' OR f.heading || char(10) || f.body = ? OR f.body = ?)",
                     (h.text, h.text, h.text)).fetchone()
                 if row:
                     out.append(CorpusHit(doc_id=row[0], heading=row[1], text=row[2],
-                                         source_name=row[3], score=h.score))
+                                         source_name=row[3], score=h.score,
+                                         trust_tier=row[4]))
         return out
 
 
@@ -519,7 +614,7 @@ def ironfleet_corpus_search(query, k: int = 5, rerank: bool = True,
                             embed_fn=None, rerank_fn=None,
                             matter: str | None = None,
                             expand: bool = False, expand_fn=None,
-                            pool_cap: int = 48) -> dict:
+                            pool_cap: int = 48, min_tier: str | None = None) -> dict:
     """The gated ported tool (D5): matter-scoped hybrid corpus search whose result
     carries the AUTHORITIES list — the verbatim passage texts the guard checks quotes
     against. Fail-closed: no matter bound -> an honest empty envelope, never another
@@ -541,6 +636,7 @@ def ironfleet_corpus_search(query, k: int = 5, rerank: bool = True,
         rerank = bool(args.get("rerank", rerank))
         expand = bool(args.get("expand", expand))
         matter = args.get("matter", matter) or matter
+        min_tier = args.get("min_tier") or min_tier
     matter = matter or os.environ.get("IRONFLEET_MATTER", "")
     if not matter:
         return {"passages": [], "authorities": [], "error": "no matter bound"}
@@ -577,9 +673,14 @@ def ironfleet_corpus_search(query, k: int = 5, rerank: bool = True,
             # error envelope — the agent can still read the passages.
             pass
     top = hits[:k]
+    # G3: passages stay readable at every tier; only open-enough text is QUOTABLE —
+    # the authorities list is what drafts may quote, and verify_document enforces the
+    # same bar, so privileged bytes cannot ride a quote into an open deliverable.
     out = {"passages": [{"doc_id": h.doc_id, "heading": h.heading, "text": h.text,
-                         "source_name": h.source_name, "score": h.score} for h in top],
-           "authorities": [h.text for h in top]}
+                         "source_name": h.source_name, "score": h.score,
+                         "trust_tier": h.trust_tier} for h in top],
+           "authorities": [h.text for h in top
+                           if quotable_tier(h.trust_tier, min_tier)]}
     if expand:
         out["supply"] = {str(i): supply.get(_hit_key(h), [])
                          for i, h in enumerate(top)}

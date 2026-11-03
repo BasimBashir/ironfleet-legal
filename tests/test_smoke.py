@@ -2,6 +2,7 @@
 # records ledger must work without Ollama, Claude, or a network. Live corpus round-trip
 # rides an injected fake embedder (no service calls); anything Ollama-dependent is
 # out of scope here.
+import io
 import json
 import sys
 from pathlib import Path
@@ -21,7 +22,9 @@ def test_tools_list_shape():
             "ironfleet_without_prejudice", "ironfleet_filing_deadline",
             "ironfleet_ingest_docs", "ironfleet_list_docs",
             "ironfleet_begin_run", "ironfleet_log_event",
-            "ironfleet_finish_run", "ironfleet_provenance"} <= names
+            "ironfleet_finish_run", "ironfleet_provenance",
+            "ironfleet_verify_document", "ironfleet_disclosure",
+            "ironfleet_objection", "ironfleet_citator"} <= names
     for t in server.TOOL_DEFS:
         assert t["inputSchema"]["type"] == "object" and t["description"]
 
@@ -55,6 +58,12 @@ def test_corpus_search_fail_closed_without_matter():
     out = server.dispatch("ironfleet_corpus_search", {"matter": "", "query": "x"})
     assert out["passages"] == [] and out["authorities"] == []
     assert "no matter bound" in out["error"]
+
+
+def test_citator_fail_closed_envelope():
+    out = server.dispatch("ironfleet_citator", {"matter": "", "authority": "A v B"})
+    assert out["ok"] is False and "no matter bound" in out["error"]
+    assert server.dispatch("ironfleet_citator", {"matter": "m"})["ok"] is False
 
 
 def test_corpus_roundtrip_fake_embeddings(tmp_path, monkeypatch):
@@ -141,3 +150,71 @@ def test_extract_text_child_inherits_path(tmp_path):
     f.write_text("word " * 250, encoding="utf-8")
     from harness.ingest_generic import extract_text
     assert len(extract_text(f).split()) == 250
+
+
+# ---------------------------------------------------------------- L2 resources
+
+def _seed_resources(tmp_path):
+    """One corpus doc + one run under HARNESS_HOME=tmp; returns the corpus uri."""
+    from harness.corpus import CorpusStore, DocRecord, chunk_text
+    store = CorpusStore(tmp_path / "corpus.sqlite3")
+    text = "PLAINTEXT PROVISION\n\nThe fee is payable on completion of the works. " * 4
+    texts = chunk_text("doc-r1", text)
+    store.ingest("m-res", DocRecord("doc-r1", text, "r.txt"),
+                 vectors=[None] * len(texts), model="fake", provider="test")
+    r = records.begin_run("m-res", "p", workspace=str(tmp_path / "ws"))
+    # the URI carries the mangled matter key (m-res -> m_res): the table suffix IS
+    # the key, and _mtable round-trips it to the same table either way
+    return "ironfleet://corpus/m_res/doc-r1", r["run_id"]
+
+
+def test_resources_corpus_and_runs(tmp_path, monkeypatch):
+    """L2: resources/list enumerates docs + run ledger; read returns their bodies;
+    unknown names fail loud (fail-closed, never 'looks plausible')."""
+    monkeypatch.setenv("HARNESS_HOME", str(tmp_path))
+    uri, rid = _seed_resources(tmp_path)
+    corpus = [r for r in server.list_resources()
+              if r["uri"].startswith("ironfleet://corpus/")]
+    assert [r["uri"] for r in corpus] == [uri]
+    body = server.read_resource(uri)
+    doc = json.loads(body[0]["text"])
+    assert doc["name"] == "r.txt" and "fee is payable" in doc["text"]
+
+    runs = {r["uri"] for r in server.list_resources()
+            if r["uri"].startswith("ironfleet://runs/")}
+    assert f"ironfleet://runs/{rid}/run.json" in runs
+    trace = server.read_resource(f"ironfleet://runs/{rid}/trace.jsonl")
+    assert "run_started" in trace[0]["text"]
+
+    for bad in ("ironfleet://corpus/m-res/nope", "ironfleet://runs/x/run.json",
+                "ironfleet://runs/{rid}/../../evil", "other://x"):
+        with pytest.raises(RuntimeError):
+            server.read_resource(bad)
+
+
+def test_resources_wire_protocol(tmp_path, monkeypatch):
+    """L2 through main(): initialize declares the resources capability, list/read
+    answer in envelope, a missing resource is a JSON-RPC -32002 error."""
+    monkeypatch.setenv("HARNESS_HOME", str(tmp_path))
+    uri, _rid = _seed_resources(tmp_path)
+    msgs = [json.dumps(m) for m in [
+        {"jsonrpc": "2.0", "id": 1, "method": "initialize",
+         "params": {"protocolVersion": "2025-06-18"}},
+        {"jsonrpc": "2.0", "id": 2, "method": "resources/list"},
+        {"jsonrpc": "2.0", "id": 3, "method": "resources/read",
+         "params": {"uri": uri}},
+        {"jsonrpc": "2.0", "id": 4, "method": "resources/read",
+         "params": {"uri": "ironfleet://corpus/m-res/nope"}},
+        {"jsonrpc": "2.0", "id": 5, "method": "resources/templates/list"},
+    ]] + [""]
+    monkeypatch.setattr(sys, "stdin", io.StringIO("\n".join(msgs)))
+    out = io.StringIO()
+    monkeypatch.setattr(sys, "stdout", out)
+    server.main()
+    replies = {r["id"]: r for r in
+               (json.loads(l) for l in out.getvalue().splitlines())}
+    assert replies[1]["result"]["capabilities"]["resources"] == {}
+    assert any(r["uri"] == uri for r in replies[2]["result"]["resources"])
+    assert replies[3]["result"]["contents"][0]["uri"] == uri
+    assert replies[4]["error"]["code"] == -32002
+    assert replies[5]["error"]["code"] == -32601

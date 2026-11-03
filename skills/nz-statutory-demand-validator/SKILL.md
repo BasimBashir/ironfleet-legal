@@ -34,7 +34,7 @@ metadata:
       type: integer
       required: false
       default: 15
-      description: Working days for company to comply (statutory minimum 15).
+      description: Days for company to comply (day type per jurisdiction pack; NZ minimum 15 working days).
     region:
       type: string
       required: false
@@ -58,9 +58,12 @@ metadata:
     compliance_deadline:
       type: string
       description: Last day to comply (ISO-8601).
-    compliance_period_working_days:
+    compliance_period_days:
       type: integer
-      description: Working days allowed.
+      description: Days allowed.
+    compliance_period_day_type:
+      type: string
+      description: "working" (nz) or "calendar" (au/uk).
     service_date:
       type: string
       description: Service date (ISO-8601).

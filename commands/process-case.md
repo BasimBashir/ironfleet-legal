@@ -27,13 +27,15 @@ agent starts fresh and reads ONLY what it needs.
 
 ## The stages (run in order; each agent writes its own deliverable)
 
-For EVERY stage: call `ironfleet_log_event` (stage start, agent name) → dispatch the
+For EVERY stage: call `ironfleet_log_event` (event `stage_start`, payload
+`{stage, agent}`) → dispatch the
 subagent → **verify the deliverable file EXISTS on disk** — if the agent returned its
 content inline without writing (models do this), write it yourself from its returned
 text and say so in the trace — → prepend the provenance header from
 `ironfleet_provenance` (stage, agent, sources = files it read, corpus_refs = the
-[E.n.S.n] refs it used) to the deliverable → `ironfleet_log_event` (stage end, file
-path + a 1-line digest). You read digests, not full files; hand the next agent the
+[E.n.S.n] refs it used) to the deliverable → `ironfleet_log_event` (event
+`stage_end`, payload `{stage, file, digest}` — the disclosure block lists a stage
+only if this event exists). You read digests, not full files; hand the next agent the
 file PATHS.
 
 **Keep stage agents from stalling on big inputs:** if the cumulative input files exceed
@@ -59,6 +61,11 @@ agent that reads everything before writing anything never writes.
    You are opposing counsel. For every path in the case theory, the strongest counter —
    competing authority from the corpus, the section reading that defeats it, the fact
    pattern where the user loses. Do not soften it.
+   After the brief lands, call `ironfleet_objection` (matter, path = `attack-brief.md`,
+   run_id) and paste the returned envelope at the bottom of the brief (G5): every
+   objection must be fixed in the brief or answered in the adversary's own prose
+   before stage_end — the adversary's own citations, quotes and dates stand under the
+   same mechanical bar it attacks with.
 5. **assess** — `ironfleet-legal:evaluator` → `win-assessment.md`:
    Per cause of action: win probability (with reasons), the single decisive fact or
    section, and BOTH branches concretely: (a) PROCEED — the path to win; (b) if losing —
@@ -69,17 +76,42 @@ agent that reads everything before writing anything never writes.
    rule or section (High Court Rules 2016, Limitation Act 2010 periods, PPSA 1999
    registration steps, any pre-action requirement), who acts, and WHEN (deadlines via
    `ironfleet_filing_deadline`; for a statutory demand run `ironfleet_statutory_demand`
-   and state the s 241(4)(a) compliance date). Never invent absolute dates you cannot
-   ground. Use `ironfleet_corpus_search` for each rule you cite.
+   and state the compliance date the kernel returned (day type per jurisdiction:
+   NZ 15 working days, au/uk 21 calendar days)). Never invent absolute dates you cannot
+   ground. Use `ironfleet_corpus_search` for each rule you cite. Log each mechanical
+   deadline computation as you make it: `ironfleet_log_event` (event `tool_result`,
+   payload `{tool, ...inputs and result}`) — the disclosure block cites these. Then
+   call `ironfleet_disclosure` (run_id) and paste the returned `block` at the top of
+   `filings-roadmap.md`: the 2026 AI-use certification every court filing carries.
 7. **advice** — `ironfleet-legal:clerk` → `advice-letter.md`:
    The document the user actually reads: plain-language answer (can I win? how? or how do
    I take minimum damage?), the recommendation, ALL steps with what and when (from the
    filings roadmap), the risks, and the open questions that would change the advice.
    Client sign-off block. No informalities.
 8. **verify** — `ironfleet-legal:citation` → `citation-check.md`:
-   Spot-check advice-letter.md and win-assessment.md against `ironfleet_corpus_search`:
-   every case and section must support its proposition. List VERIFIED, CORRECTED, and
-   [NOT IN CORPUS] citations.
+   Call `ironfleet_verify_document` (matter, path) on BOTH `advice-letter.md` and
+   `win-assessment.md` — the mechanical, offline check that every double-quoted span and
+   every `[E.n.S.n]` reference is a byte substring of an ingested chunk of this matter
+   of an open enough trust tier (G3). It returns `{ok, refs, quotes,
+   summary:{verified, corrected, ungrounded}}`; a `VERIFIED` verdict is ground truth,
+   a `NOT_IN_CORPUS`, `MISMATCH` or `PRIVILEGED` one is not.
+   Paste the raw envelopes into citation-check.md verbatim (never re-summarise them —
+   re-runnability is the point), and log each one as you get it:
+   `ironfleet_log_event` (event `tool_result`, payload
+   `{tool: "ironfleet_verify_document", path, ok, summary, refs}`) — the disclosure
+   block renders verify verdicts from these events. Also call `ironfleet_objection`
+   (matter, path, run_id) on `advice-letter.md` and `filings-roadmap.md` and paste
+   those envelopes into citation-check.md as well: a `date_not_matching_kernel`
+   objection means a stated date or period contradicts the logged kernel computation —
+   fix the draft, or record the ruling as an exception event. When the matter has a
+   law-judgments corpus ingested, also call `ironfleet_citator` (matter, path) on
+   `advice-letter.md` and paste the envelope: a later-citing judgment surfaced for a
+   cited authority must be reflected in the win assessment or named as an open
+   assumption (the tool surfaces citing judgments only — treatment is a human call).
+   Then spot-check
+   *coverage* against
+   `ironfleet_corpus_search`: every case and section must also SUPPORT its proposition.
+   List VERIFIED, CORRECTED, and [NOT IN CORPUS] citations.
 9. **close** — `ironfleet-legal:auditor` → `closing-summary.md`:
    What was produced (every file, one line each), the direct answer in five lines, the
    open risks, how the user continues this session.
@@ -89,7 +121,23 @@ agent that reads everything before writing anything never writes.
 - **Quote fidelity (select-compose):** quoted prose comes ONLY from
   `ironfleet_corpus_search` passages, verbatim, with the [E.n.S.n] reference noted. An
   agent that cannot ground a quote either drops the quote or writes [NOT IN CORPUS].
-  Never paraphrase inside quotation marks.
+  Never paraphrase inside quotation marks. A stage that drafts with [E.n.S.n]
+  references logs the evidence table it composed against — `ironfleet_log_event`
+  (event `evidence`, payload `{table: {"[E1.S1]": "<the verbatim sentence>"}}`) — so
+  `ironfleet_objection` can pin every reference to its sentence and call a
+  contradicting quote a MISMATCH.
+- **Verified before closing (G1+G2, fail-closed):** stage 9 does NOT call
+  `ironfleet_finish_run` until `ironfleet_verify_document` has returned `ok: true` for
+  both `advice-letter.md` and `win-assessment.md`, OR every `NOT_IN_CORPUS` / `MISMATCH`
+  verdict is either fixed in the draft or recorded as a ruled exception — an authority
+  deliberately marked `[NOT IN CORPUS]` by design (the corpus honesty rule above) —
+  with an `ironfleet_log_event` exception event naming the ref, the quote and the ruling.
+  A `PRIVILEGED` verdict (G3) is NEVER a ruled exception: privileged-tier text (T0/T2)
+  comes out of the draft, or the operator re-tiers the source as open — the ruled-
+  exception path cannot close a privilege leak.
+  An unverified span that is neither fixed nor ruled is a DEGRADED deliverable: say so
+  once in `closing-summary.md` and never silently drop the corpus contract — degrade it
+  loudly, never silently.
 - **Checkpoints are CONDITIONAL** — interrupt the user only when ambiguity is HIGH or
   before an irreversible step (filing). Otherwise proceed and record the assumption in
   fact-questions.md. Any question asked + its answer: `ironfleet_log_event` (checkpoint).

@@ -4,7 +4,8 @@ from .vendored.companies_act import validate_statutory_demand
 from .vendored.without_prejudice_detector import run as _classify_wp
 
 def statutory_demand(args: dict) -> dict:
-    """s 289 Companies Act 1993 validation + s 241(4)(a) compliance deadline.
+    """Pack-backed statutory-demand validation + compliance deadline (day type per
+    jurisdiction pack: NZ working days, au/uk calendar days).
     Thin wrapper over the vendored kernel: argument marshalling only — NO statute logic of its
     own. Required keys are read by dict indexing, so a missing one fails loudly (KeyError, not
     the TypeError a positional miss would raise) rather than silently degrading the validation."""

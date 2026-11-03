@@ -20,8 +20,10 @@
   },
   "statutory_demand": {
     "prescribed_minimum": "4000.00",
-    "compliance_period_working_days": 21,
-    "statute_ref": "Corporations Act 2001 s 459E"
+    "compliance_period_days": 21,
+    "compliance_period_day_type": "calendar",
+    "statute_ref": "Corporations Act 2001 s 459E",
+    "compliance_statute_ref": "Corporations Act 2001 s 459F"
   },
   "penalty_clause": {
     "ratio_thresholds": {
@@ -55,6 +57,9 @@
       "intellectual_property"
     ],
     "statute_ref": "Personal Property Securities Act 2009 (Cth)"
+  },
+  "without_prejudice": {
+    "privilege_statute_ref": "Evidence Act 1995 s 131"
   },
   "holidays_file": "config/jurisdictions/au_holidays.json"
 }

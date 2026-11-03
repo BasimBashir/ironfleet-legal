@@ -1,8 +1,9 @@
 """
 without_prejudice_detector.py — BN-03
 Category C / IRON skill.
-Classifies correspondence as WP, WPSATC, or OPEN per Evidence Act 2006 s57.
-All confidence arithmetic uses decimal.Decimal.
+Classifies correspondence as WP, WPSATC, or OPEN — the privilege statute
+reference in the reasoning comes from the jurisdiction pack (NZ default:
+Evidence Act 2006 s 57). All confidence arithmetic uses decimal.Decimal.
 """
 
 from __future__ import annotations
@@ -12,6 +13,8 @@ import json
 import re
 from decimal import Decimal
 from typing import Any
+
+from .jurisdiction_loader import JurisdictionLoader
 
 # ── Injection detection patterns ──────────────────────────────────────────
 
@@ -128,6 +131,7 @@ def run(payload: dict[str, Any]) -> dict[str, Any]:
             subject_line:      str   — optional
             trust_tier:        str   — required (T0-T3)
             operator_override: bool  — required for T0
+            jurisdiction:      str   — optional (default "nz")
             case_state:        dict  — optional, read only
         }
 
@@ -156,6 +160,7 @@ def run(payload: dict[str, Any]) -> dict[str, Any]:
     subject = payload.get("subject_line", "")
     trust_tier = payload["trust_tier"]
     operator_override = payload.get("operator_override", False)
+    jurisdiction = payload.get("jurisdiction", "nz")
 
     # ── T0 gate ───────────────────────────────────────────────────────────
     if trust_tier == "T0" and not operator_override:
@@ -250,6 +255,9 @@ def run(payload: dict[str, Any]) -> dict[str, Any]:
     elif has_wp_signal:
         wp_status = "WP"
         is_header = True
+        privilege_ref = JurisdictionLoader.get_without_prejudice_rules(
+            jurisdiction
+        )["privilege_statute_ref"]
         if wp_header:
             triggering_phrase = "WITHOUT PREJUDICE"
         elif priv_conf_header:
@@ -261,7 +269,7 @@ def run(payload: dict[str, Any]) -> dict[str, Any]:
         subject_score = 1.0 if subject_has_wp else 0.0
         reasoning = (
             f"WP header marker detected: '{triggering_phrase}'. "
-            f"Evidence Act s57 protection applies — inadmissible on merits. "
+            f"{privilege_ref} protection applies — inadmissible on merits. "
             f"Classification: WP."
         )
 
