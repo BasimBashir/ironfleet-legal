@@ -52,7 +52,17 @@ agent that reads everything before writing anything never writes.
    Use `ironfleet_corpus_search` on each issue (statutory sections and case law). Per
    issue: governing provisions (exact sections), controlling authorities in this corpus
    (parties, citation, holding), and anything the corpus does NOT answer. Flag every
-   authority not found in the corpus [NOT IN CORPUS].
+   authority not found in the corpus [NOT IN CORPUS]. Then the standing issue sweep —
+   each is a numbered research issue even when the answer is [NOT IN CORPUS], never
+   skipped in silence: (i) limitation (Limitation Act 2010) for every debt; (ii)
+   security interests — PPSA registration, perfection and priority (s 40's window);
+   (iii) voidable transactions — enumerate EVERY payment, transfer and registration in
+   the intake facts and test EACH against Insolvency Act 2006 s 292, including the
+   s 296 good-faith defence (minutes/emails bearing on insolvency attach to their
+   specific transaction); (iv) statutory-demand viability (the $1,000 minimum is a
+   kernel constant — never flag it [NOT IN CORPUS]); (v) penalty doctrine — test any
+   default-interest or penalty-rate clause against the penalty rule, stating the
+   issue even when the corpus holds no authority for it.
 3. **strategy** — `ironfleet-legal:strategist` → `case-theory.md`:
    From the research memo and intake facts: viable cause(s) of action or defence paths,
    elements to prove, strongest authorities for each, weaknesses, the facts that would
@@ -77,7 +87,9 @@ agent that reads everything before writing anything never writes.
    registration steps, any pre-action requirement), who acts, and WHEN (deadlines via
    `ironfleet_filing_deadline`; for a statutory demand run `ironfleet_statutory_demand`
    and state the compliance date the kernel returned (day type per jurisdiction:
-   NZ 15 working days, au/uk 21 calendar days)). Never invent absolute dates you cannot
+   NZ 15 working days, au/uk 21 calendar days); a statutory demand drafted without
+   that logged computation is a verify-stage objection — the kernel call is not
+   optional). Never invent absolute dates you cannot
    ground. Use `ironfleet_corpus_search` for each rule you cite. Log each mechanical
    deadline computation as you make it: `ironfleet_log_event` (event `tool_result`,
    payload `{tool, ...inputs and result}`) — the disclosure block cites these. Then
@@ -114,7 +126,8 @@ agent that reads everything before writing anything never writes.
    List VERIFIED, CORRECTED, and [NOT IN CORPUS] citations.
 9. **close** — `ironfleet-legal:auditor` → `closing-summary.md`:
    What was produced (every file, one line each), the direct answer in five lines, the
-   open risks, how the user continues this session.
+   open risks, how the user continues this session. Prepend the same provenance
+   header — closing-summary.md is a deliverable like any other.
 
 ## House rules (binding)
 

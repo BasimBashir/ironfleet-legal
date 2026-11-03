@@ -34,7 +34,11 @@ cure). Never install anything without telling the user what and why.
    CLT or brew on macOS).
 3. **sqlite-vec** — `python -c "import sqlite_vec; print(sqlite_vec.__version__)"`.
    Fix: `python -m pip install --user sqlite-vec==0.1.9` (add `--break-system-packages`
-   on PEP 668 distros — Ubuntu 23.04+).
+   on PEP 668 environments — Ubuntu 23.04+ AND macOS Homebrew python).
+   macOS trap (found live 2026-10-26): the python.org/Apple framework build cannot
+   LOAD SQLite extensions (`enable_load_extension` missing) — sqlite-vec imports but
+   never loads. Use Homebrew python (`brew install python@3.12`) and install the deps
+   on it, then point the `python` alias there.
 4. **PDF support (optional)** — `python -c "import pypdf"`.
    Fix: `python -m pip install --user pypdf` (same PEP 668 caveat). Only needed to
    ingest PDFs; markitdown is likewise optional (rich formats; gracefully skipped).

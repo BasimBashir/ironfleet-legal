@@ -1,6 +1,6 @@
 # Fresh-OS setup — IronFleet Legal from zero
 
-> **Current release:** v0.3.0 (2026-11-03) · repo
+> **Current release:** v0.3.1 (2026-11-03) · repo
 > [BasimBashir/ironfleet-legal](https://github.com/BasimBashir/ironfleet-legal) ·
 > 26 skills (one adapted skill is distributed against its upstream's no-derivatives
 > terms at the repo owner's election — see ATTRIBUTION.md), 13 agents, 14
@@ -34,8 +34,11 @@ claude plugin install ironfleet-legal@ironfleet-legal --config consent_local_pro
 - From a local checkout instead of GitHub: `claude plugin marketplace add ./ironfleet-legal`
   (developer workflow — same as publishing your own fork).
 - **FRICTION (recorded):** the consent option is REQUIRED; on CLI ≥ 2.1.281 you can set
-  or change it later with `claude plugin configure ironfleet-legal@ironfleet-legal` — on
-  older CLIs pass `--config KEY=VALUE` at install time (verified working).
+  or change it later with `claude plugin configure ironfleet-legal@ironfleet-legal`.
+  On older CLIs neither flag may exist (found live 2026-10-26 on macOS CLI 2.1.85:
+  `--config` is an unknown option — the earlier "pass it at install time" claim was
+  wrong for that build). Install without it and carry on: the pipeline's consent
+  reminder is non-blocking by design, and the flag can be set later from a current CLI.
 - **FRICTION (recorded):** the installed plugin is a CACHE COPY of the repo
   (`~/.claude/plugins/cache/...`) taken from the repo's **committed** state. After any
   code change: commit, then refresh with
@@ -52,7 +55,9 @@ python -m pip install --user pypdf        # only if you will ingest PDFs
 
 **FRICTION (recorded):** sqlite-vec is the one non-stdlib import; without it the
 corpus tools fail LOUD (`RuntimeError: sqlite-vec is a hard dependency`) — that is
-by design; `/ironfleet-legal:doctor` prints this exact fix.
+by design; `/ironfleet-legal:doctor` prints this exact fix. On PEP 668 environments —
+Ubuntu 23.04+ AND macOS Homebrew python — add `--break-system-packages` to both
+pip commands.
 
 ## 3. Embedding model tag
 
@@ -148,7 +153,21 @@ claude -p "/ironfleet-legal:ingest matter-docs matter: powell-builders" \
   --allowedTools "mcp__plugin_ironfleet-legal_ironfleet__*"
 claude -p "/ironfleet-legal:process-case <ask> matter: <ref>" \
   --allowedTools "mcp__plugin_ironfleet-legal_ironfleet__*,Task,Read,Write,Edit,Glob,Grep"
+claude -p "run the IronFleet doctor preflight" \
+  --allowedTools "Bash,Read,Glob,Grep,mcp__plugin_ironfleet-legal_ironfleet__*"
 ```
+
+The doctor needs `Bash` in `--allowedTools` — its checks run `curl`, `python -c` and
+`manage-bde` themselves (found live 2026-10-26: scoped to the MCP wildcard alone, the
+doctor honestly printed "NOT RUN — blocked" for every shell check instead of guessing;
+only check 2 passed).
+
+**FRICTION (recorded):** a headless `process-case` on a freshly-ingested SYNTHETIC
+fixture may still pause at the safety checkpoint — the fixture documents are labeled
+SYNTHETIC and the stage agent cannot see that you ingested them moments earlier.
+Send one follow-up `claude -p` confirming the corpus is intentional and the run
+completes; the first run folder is marked `superseded` with `superseded_by` pointing
+at the new run_id, so the debug ladder never dead-ends on an abandoned folder.
 
 **FRICTION (recorded):** on a machine whose Claude Code authenticates through a local
 gateway (`apiKeyHelper` + `ANTHROPIC_BASE_URL` in settings.json), the standalone CLI
@@ -162,6 +181,21 @@ Customize → Plugins → **Add marketplace** → `BasimBashir/ironfleet-legal` 
 runs the local stdio MCP because the session is on your machine; claude.ai chat ignores
 local MCP servers (skills and agents still work there, with the corpus honestly
 degraded — drafts carry `[NO CORPUS STORE — attach documents directly]`).
+
+## macOS notes (from the SL tester's fresh run, 2026-10-26)
+
+- **Use Homebrew python** (`brew install python@3.12`) — the python.org/Apple framework
+  build cannot LOAD SQLite extensions (`enable_load_extension` missing), so sqlite-vec
+  imports but never loads and ingest fails. Install §2's deps on brew's python with
+  `--break-system-packages`, and point the `python` alias at it.
+- **`python` vs `python3`:** macOS ships `python3` only; the plugin's MCP config
+  invokes `python`. Fix: brew's python provides both once linked, or
+  `ln -sf "$(command -v python3)" /usr/local/bin/python`.
+- **Ollama must be RUNNING:** launch the app (`open -a Ollama`) or `ollama serve`;
+  installed-but-not-started fails doctor check 5 until :11434 answers.
+- Store path: `~/Library/Application Support/IronFleet/harness` — doctor resolves it;
+  never hand-build it.
+- Volume encryption is FileVault (`fdesetup status`) — doctor check 9.
 
 ## Linux notes (verified live on fresh Ubuntu 24.04 in a VM, 2026-10-22)
 
@@ -184,3 +218,11 @@ degraded — drafts carry `[NO CORPUS STORE — attach documents directly]`).
 - Install CPython from python.org with "Add to PATH" — the installer provides `python`.
 - The encryption check (`manage-bde`) needs an **Administrator** terminal; from a
   normal one it reports indeterminate and privileged matters stay gated.
+- **Ollama** (found live 2026-10-26): the installer is ~1.6 GB — not a few-hundred-MB
+  download. It silent-installs, but a first-run ONBOARDING WINDOW still opens
+  ("Create an account" → "Run Ollama"): choose the local/no-account option or just
+  close it — the background service and the `ollama` CLI work regardless of whether
+  that window is dismissed.
+- If `ollama` is "not found" right after a silent install, open a NEW terminal —
+  PATH is cached per-shell (or call it by full path
+  `%LOCALAPPDATA%\Programs\Ollama\ollama.exe`).

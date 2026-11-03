@@ -1,9 +1,10 @@
-# mcp/harness/objection.py — G5 (ROADMAP-0.2.0): the adversary's three failure modes
+# mcp/harness/objection.py — G5 (ROADMAP-0.2.0): the adversary's failure modes
 # as a tool. Mechanical, offline, re-runnable — it runs BEFORE advice is drafted, not
 # after: (a) a cited authority not in corpus, (b) a quoted span not in corpus, (c) a
-# date/period not matching the kernel's computation for this matter. (a)+(b) reuse
-# G1's verify_document core byte-for-byte; (c) reads the kernel computations stage 6
-# already logs as tool_result events — zero new storage.
+# date/period not matching the kernel's computation for this matter, (d) a statutory
+# demand drafted but never kernel-computed (found live 2026-10-26, SL test). (a)+(b)
+# reuse G1's verify_document core byte-for-byte; (c) reads the kernel computations
+# stage 6 already logs as tool_result events — zero new storage.
 # When the run logs an evidence table (log_event event `evidence`, payload
 # `{table: {"[E1.S1]": "<verbatim sentence>"}}`), every [E.n.S.n] ref is PINNED to
 # its sentence: a ref whose draft quote differs from its pinned sentence is finally a
@@ -215,12 +216,26 @@ def objection(matter: str, path: str, run_id: str | None = None,
                                  "logs them as tool_result events)" if run_id
                                  else "no run_id — kernel checks skipped")
 
+    # (d): a draft that raises a statutory demand must have run the kernel — found
+    # live 2026-10-26: the stage-6 instruction alone was obeyed by one model and
+    # skipped by another (which then flagged the kernel's own $1,000 minimum as
+    # [NOT IN CORPUS]). Instruction-following is nondeterministic; this is not.
+    if run_id and re.search(r"(?i)statutory demand", text) and \
+            not any(c["tool"] == "ironfleet_statutory_demand" for c in comps):
+        out["objections"].append({
+            "kind": "statutory_demand_not_computed",
+            "detail": "the draft raises a statutory demand but this run logged no "
+                      "ironfleet_statutory_demand computation — run the kernel "
+                      "(amount vs the $1,000 minimum; the compliance deadline) and "
+                      "state its result, or rule the exception via log_event"})
+
     out["refs"] = v["refs"]
     out["quotes"] = v["quotes"]
     out["verify_summary"] = v["summary"]
     out["summary"] = {k: sum(1 for o in out["objections"] if o["kind"] == k)
                       for k in ("authority_not_in_corpus", "quote_not_in_corpus",
-                                "date_not_matching_kernel")}
+                                "date_not_matching_kernel",
+                                "statutory_demand_not_computed")}
     out["ok"] = not out["objections"]
     if not out["ok"]:
         out["remedy"] = ("fix each objection in the draft or answer it in the "

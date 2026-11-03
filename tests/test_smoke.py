@@ -111,6 +111,24 @@ def test_records_full_cycle(tmp_path):
     assert "can I win?" in rec and "sess-1" in rec and done["record"].endswith("RECORD.md")
 
 
+def test_records_live_status_and_supersede(tmp_path):
+    """Found live 2026-10-26 (SL test): run.json froze after stage 1, and a resumed
+    run orphaned the first as 'running' forever — the debug ladder dead-ended on the
+    wrong folder."""
+    ws = tmp_path / "matter-ws"
+    first = records.begin_run("m-y", "p", workspace=str(ws))
+    records.log(first["run_id"], "stage_end", {"stage": "intake"}, workspace=str(ws))
+    run = json.loads((Path(first["run_dir"]) / "run.json").read_text(encoding="utf-8"))
+    assert run["stages_done"] == ["intake"] and run["status"] == "running"
+    second = records.begin_run("m-y", "p again", workspace=str(ws))
+    stale = json.loads((Path(first["run_dir"]) / "run.json").read_text(encoding="utf-8"))
+    assert stale["status"] == "superseded"
+    assert stale["superseded_by"] == second["run_id"]
+    events = [json.loads(l) for l in (Path(first["run_dir"]) / "trace.jsonl")
+              .read_text(encoding="utf-8").splitlines()]
+    assert events[-1]["event"] == "superseded" and events[-1]["by"] == second["run_id"]
+
+
 def test_records_never_blocks_on_bad_run():
     assert records.log("nope-404", "x", {}, matter="m")["ok"] is False
 

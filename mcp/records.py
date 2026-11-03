@@ -83,7 +83,8 @@ def _resolve(run_id: str, matter: str, workspace: str | None) -> Path:
 def begin_run(matter: str, prompt: str, workspace: str | None = None,
               stages: list[str] | None = None) -> dict:
     run_id = f"{datetime.now().strftime('%Y%m%d')}-{secrets.token_hex(3)}"
-    d = _run_dir(runs_root(matter, workspace), run_id)
+    runs = runs_root(matter, workspace)
+    d = _run_dir(runs, run_id)
     (d / "trace.jsonl").write_text("", encoding="utf-8")
     run = {"run_id": run_id, "matter": matter, "prompt": prompt,
            "started": datetime.now(timezone.utc).isoformat(),
@@ -92,8 +93,31 @@ def begin_run(matter: str, prompt: str, workspace: str | None = None,
            "checkpoints": [], "deliverables": []}
     (d / "run.json").write_text(json.dumps(run, indent=2), encoding="utf-8")
     _index(run_id, d)
+    _supersede_stale(runs, run_id, d)
     log(run_id, "run_started", {"matter": matter}, d=d)
     return {"run_id": run_id, "run_dir": str(d)}
+
+
+def _supersede_stale(runs: Path, run_id: str, d: Path) -> None:
+    """A second run on the same matter must not orphan the first silently — found
+    live 2026-10-26: a resumed run left the old run.json 'running' forever and the
+    debug ladder dead-ended on the wrong folder."""
+    for old in runs.glob("*/run.json"):
+        if old.parent == d:
+            continue
+        try:
+            r = json.loads(old.read_text(encoding="utf-8"))
+            if r.get("status") != "running":
+                continue
+            r["status"] = "superseded"
+            r["superseded_by"] = run_id
+            old.write_text(json.dumps(r, indent=2), encoding="utf-8")
+            with (old.parent / "trace.jsonl").open("a", encoding="utf-8") as fh:
+                fh.write(json.dumps({"ts": datetime.now(timezone.utc).isoformat(),
+                                     "event": "superseded", "by": run_id},
+                                    ensure_ascii=False) + "\n")
+        except Exception:                              # noqa: BLE001 — ledger never blocks
+            pass
 
 
 def _find(runs: Path, run_id: str) -> Path:
@@ -113,6 +137,20 @@ def log(run_id: str, event: str, payload: dict | None = None,
                 **(payload or {})}
         with (d / "trace.jsonl").open("a", encoding="utf-8") as fh:
             fh.write(json.dumps(line, ensure_ascii=False) + "\n")
+        if event == "stage_end":                       # keep run.json live — found
+            try:                                       # stale 2026-10-26: it froze
+                run = json.loads((d / "run.json").read_text(  # after stage 1
+                    encoding="utf-8"))
+                done = run.setdefault("stages_done", [])
+                stage = str((payload or {}).get("stage")
+                            or Path(str((payload or {}).get("file", ""))).name)
+                if stage and stage not in done:
+                    done.append(stage)
+                run["updated"] = datetime.now(timezone.utc).isoformat()
+                (d / "run.json").write_text(json.dumps(run, indent=2),
+                                            encoding="utf-8")
+            except Exception:                          # noqa: BLE001 — never blocks
+                pass
         return {"ok": True}
     except Exception as ex:                                # noqa: BLE001 — ledger never blocks
         return {"ok": False, "error": str(ex)}

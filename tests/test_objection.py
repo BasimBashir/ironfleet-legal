@@ -74,7 +74,8 @@ def test_fabricated_quote_and_authority_are_objected(store, tmp_path):
                'cause" [E1.S2].')
     assert out["ok"] is False
     assert out["summary"] == {"authority_not_in_corpus": 1, "quote_not_in_corpus": 1,
-                              "date_not_matching_kernel": 0}
+                              "date_not_matching_kernel": 0,
+                              "statutory_demand_not_computed": 0}
     kinds = {o["kind"] for o in out["objections"]}
     assert kinds == {"quote_not_in_corpus", "authority_not_in_corpus"}
 
@@ -175,6 +176,22 @@ def test_run_without_kernel_computations_notes_it(store, tmp_path):
     assert out["kernel"]["computations"] == 0
     assert "no kernel computations logged" in out["kernel"]["note"]
     assert out["ok"] is True
+
+
+def test_statutory_demand_draft_without_a_kernel_run_is_objected(store, tmp_path):
+    """Found live 2026-10-26 (SL test): a model drafted the statutory-demand step but
+    never ran the kernel — instruction-following is nondeterministic; this check is
+    not. The stated deadline matches the logged computation, so this objection is the
+    only one."""
+    rid = _run(tmp_path, [("tool_result", {"tool": "ironfleet_filing_deadline",
+                                           "service_date": "2026-03-02", "days": 15,
+                                           "deadline": "2026-03-23"})])
+    out = _obj(store, tmp_path,
+               "Serve a statutory demand on the debtor; the compliance deadline is "
+               "23 March 2026.", run_id=rid)
+    assert out["ok"] is False
+    assert out["summary"]["statutory_demand_not_computed"] == 1
+    assert "ironfleet_statutory_demand" in out["objections"][0]["detail"]
 
 
 def test_missing_deliverable_is_loud(store, tmp_path):
