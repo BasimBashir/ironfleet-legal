@@ -48,7 +48,7 @@ def test_nz_kernel_reads_pack_not_hardcoded_strings():
     # the 15-working-day minimum and $1,000 floor live in nz.json now
     assert got["compliance_period_days"] == cfg.compliance_period_days == 15
     assert got["compliance_period_day_type"] == "working"
-    assert got["compliance_statute_ref"] == "Companies Act 1993 s 241(4)(a)"
+    assert got["compliance_statute_ref"] == "Companies Act 1993 s 289(2)(d)"
 
 
 def test_au_uk_compliance_periods_are_calendar_days():
@@ -87,3 +87,17 @@ def test_wp_reasoning_carries_jurisdiction_pack_ref():
     nz_ref = JurisdictionLoader.load("nz").without_prejudice_statute_ref
     assert nz_ref in nz["result"]["reasoning_chain"]
     assert nz_ref != au_ref
+
+
+def test_nz_working_days_skip_companies_act_christmas_closure():
+    """CA 1993 s 2 "working day" (b)-(d). Dates from run 20261104-6174c7: the
+    s 288(1) 30-working-day window had come out 3 days early (22 Jan, 9 Feb)."""
+    from datetime import date
+    from harness.module_e.vendored.court_calendar import add_working_days, is_working_day
+    assert add_working_days(date(2026, 12, 7), 30) == date(2027, 1, 27)
+    assert add_working_days(date(2026, 12, 22), 30) == date(2027, 2, 12)
+    assert not is_working_day(date(2026, 12, 29))                        # (b)
+    assert not is_working_day(date(2027, 1, 4))                          # (c) 1 Jan a Friday
+    assert not is_working_day(date(2028, 1, 4))                          # (d) 1 Jan a Saturday
+    assert is_working_day(date(2028, 1, 5))
+    assert is_working_day(date(2026, 12, 29), jurisdiction="au")         # NZ-only rule

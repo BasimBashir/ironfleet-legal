@@ -4,7 +4,7 @@ Validates a statutory demand and computes the compliance deadline. Every
 statutory parameter (prescribed minimum, compliance period, statute
 references) loads from the jurisdiction pack via JurisdictionLoader — the
 kernel owns no statute strings of its own. NZ pack: Companies Act 1993
-s 289 (demand) / s 241(4)(a) (prescribed minimum).
+s 289 (demand; prescribed amount s 289(2)(a), 15 working days s 289(2)(d)).
 
 Requirements:
 - Debt must be due and owing

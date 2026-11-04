@@ -107,14 +107,33 @@ def is_working_day(
     """Return ``True`` if *d* is a business day in *jurisdiction*.
 
     A date is a working day if it is Monday-Friday **and** not a national
-    or regional public holiday.
+    or regional public holiday (NZ: nor in the statutory Christmas closure).
 
     For years outside 2024-2030 only weekends are excluded (no holiday
     data available).
     """
     if d.weekday() >= 5:  # Saturday = 5, Sunday = 6
         return False
+    if jurisdiction == "nz" and _nz_christmas_closed(d):
+        return False
     return d not in _holidays_for(d.year, region, jurisdiction)
+
+
+def _nz_christmas_closed(d: date) -> bool:
+    """Companies Act 1993 s 2 "working day" (b)-(d); PPSA 1999 s 16 has the same (b).
+
+    shortcut: PPSA ss 165/167A/168/178 and court-rule periods run to 15 January;
+    give those a separate closure when a tool needs them.
+    """
+    if (d.month, d.day) >= (12, 25) or (d.month == 1 and d.day <= 2):
+        return True
+    jan1 = date(d.year, 1, 1).weekday()  # Mon = 0
+    if jan1 == 4:  # Friday: the following Monday
+        return d == date(d.year, 1, 4)
+    if jan1 >= 5:  # Saturday or Sunday: the following Monday and Tuesday
+        first_monday = date(d.year, 1, 1) + timedelta(days=7 - jan1)
+        return d in (first_monday, first_monday + timedelta(days=1))
+    return False
 
 
 def add_working_days(

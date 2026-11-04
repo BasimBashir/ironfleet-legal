@@ -77,7 +77,7 @@ metadata:
 # NZ Statutory Demand Validator
 
 Validates a statutory demand under **s 289 of the Companies Act 1993** and
-computes the compliance deadline per **s 241(4)(a)**.
+computes the compliance deadline per **s 289(2)(d)**.
 
 ## Requirements
 

@@ -23,7 +23,7 @@
     "compliance_period_days": 15,
     "compliance_period_day_type": "working",
     "statute_ref": "Companies Act 1993 s 289",
-    "compliance_statute_ref": "Companies Act 1993 s 241(4)(a)"
+    "compliance_statute_ref": "Companies Act 1993 s 289(2)(d)"
   },
   "penalty_clause": {
     "ratio_thresholds": {

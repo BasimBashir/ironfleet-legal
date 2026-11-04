@@ -1,6 +1,6 @@
 # Fresh-OS setup — IronFleet Legal from zero
 
-> **Current release:** v0.3.1 (2026-11-03) · repo
+> **Current release:** v0.3.2 (2026-11-04) · repo
 > [BasimBashir/ironfleet-legal](https://github.com/BasimBashir/ironfleet-legal) ·
 > 26 skills (one adapted skill is distributed against its upstream's no-derivatives
 > terms at the repo owner's election — see ATTRIBUTION.md), 13 agents, 14
@@ -45,6 +45,10 @@ claude plugin install ironfleet-legal@ironfleet-legal --config consent_local_pro
   `claude plugin uninstall ironfleet-legal@ironfleet-legal && claude plugin install ironfleet-legal@ironfleet-legal`.
   (A `marketplace remove && add` alone does NOT refresh an installed plugin; an
   `install` over an existing install is a no-op.)
+- **Upgrading from an earlier version (e.g. 0.1.0):** the same uninstall → install,
+  then start a NEW Claude session (see §4 — MCP binds at session start). Your corpus
+  store and matter folders are outside the plugin cache and survive the upgrade. What
+  changed is summarised in the README's "What changed since 0.1.0".
 
 ## 2. Python deps for the corpus machinery
 
@@ -125,6 +129,27 @@ scanned-source floor) — a short note will not silently enter the corpus; give 
 content or merge it into a larger file. PDFs ride the same chain (MarkItDown → pypdf →
 raw text) in a killable subprocess; a hang is skipped, never stuck.
 
+**Answer-key hygiene:** ingest the `docs/` subfolder, never the fixture's root folder —
+the root also holds TEST-CHECKLIST.md (the answer key) and verify-report.md, and once
+they are in the corpus the run can read them (found live 2026-11-04).
+
+### 5b. Optional: your law library (`/sync-law`)
+
+Without statutes in the corpus, every legal authority a run cites is `[NOT IN CORPUS]`
+and provisional. To ground the law, download the Acts yourself from
+legislation.govt.nz (your own browser — the plugin never fetches; NZLII is never a
+source, even downloaded by hand) into a folder, then:
+
+```
+/ironfleet-legal:sync-law nz-statutes
+```
+
+Generic form: `/ironfleet-legal:sync-law <folder> [matter: law|law-judgments]` —
+statutes default to matter `law`; judgment copies go to `law-judgments` (what the
+citator reads). The command reports each file NEW or REFRESHED and states the matter's
+currency date. For the dummy case, the statutes it turns on are listed in
+TEST-CHECKLIST.md §5.
+
 ## 6. Run the pipeline
 
 ```
@@ -143,8 +168,21 @@ the same workspace's `runs/`. Expect 25–40 minutes of agent work.
 
 Live verification (2026-10-21, the run that produced this guide): stages land their
 deliverables progressively — `case-summary.md`, `fact-questions.md`, `research-memo.md`,
-`case-theory.md` were on disk mid-run with the `runs/` ledger writing alongside. The
-full nine-stage completion record lands here when the verification run finishes.
+`case-theory.md` were on disk mid-run with the `runs/` ledger writing alongside.
+
+Completion record (2026-11-04, Windows 11, public install, five Acts ingested into the
+matter): 9/9 stages, 10 deliverables, verify gate 22 verified / 0 ungrounded, all seven
+checklist ground truths met. The run caught a working-day gap in the deadline kernel
+(fixed in 0.3.2) and three citation errors in the checklist itself (corrected).
+
+### 6b. Walk through the result (`/explain`)
+
+```
+/ironfleet-legal:explain harbour-freight
+```
+
+Reads the finished run back in plain English — the answer, then each point with its
+passage, a link to it, the corpus source, and a verdict re-verified now. Writes no file.
 
 ## 7. Headless / CI driving (optional, how this was verified)
 

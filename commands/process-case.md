@@ -55,10 +55,11 @@ agent that reads everything before writing anything never writes.
    authority not found in the corpus [NOT IN CORPUS]. Then the standing issue sweep —
    each is a numbered research issue even when the answer is [NOT IN CORPUS], never
    skipped in silence: (i) limitation (Limitation Act 2010) for every debt; (ii)
-   security interests — PPSA registration, perfection and priority (s 40's window);
+   security interests — PPSA registration, perfection and priority (PPSA s 41 perfection, s 66 priority,
+   ss 73-74 PMSI windows);
    (iii) voidable transactions — enumerate EVERY payment, transfer and registration in
-   the intake facts and test EACH against Insolvency Act 2006 s 292, including the
-   s 296 good-faith defence (minutes/emails bearing on insolvency attach to their
+   the intake facts and test EACH against Companies Act 1993 s 292 (Insolvency Act 2006 s 194
+   for individuals), including the s 296(3) good-faith defence (minutes/emails bearing on insolvency attach to their
    specific transaction); (iv) statutory-demand viability (the $1,000 minimum is a
    kernel constant — never flag it [NOT IN CORPUS]); (v) penalty doctrine — test any
    default-interest or penalty-rate clause against the penalty rule, stating the

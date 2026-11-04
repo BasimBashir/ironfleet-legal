@@ -41,7 +41,7 @@ def test_statutory_demand_minimum_enforced():
                           {"amount": 500, "debtor_company": "X Ltd",
                            "creditor": "Y Ltd", "debt_details": "unpaid invoice"})
     text = json.dumps(out).lower()
-    assert "1000" in text or "minimum" in text      # below the s 241(4)(a) floor
+    assert "1000" in text or "minimum" in text      # below the s 289(2)(a) prescribed amount
 
 
 def test_without_prejudice_classifies():

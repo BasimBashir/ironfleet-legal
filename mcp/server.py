@@ -26,7 +26,7 @@ from harness.vectors import VectorStore                   # noqa: E402
 # VERSION must move together with the version fields in .claude-plugin/plugin.json
 # and .claude-plugin/marketplace.json — three hardcoded copies, no build step syncs
 # them yet (that lands with W3's operator CLI).
-VERSION = "0.3.0"
+VERSION = "0.3.2"
 
 
 def _stores():
@@ -57,7 +57,8 @@ def t_filing_deadline(a: dict) -> dict:
                               jurisdiction=a.get("jurisdiction", "nz"))
     return {"deadline": d.isoformat(),
             "note": "day of service excluded; only working days counted "
-                    "(weekends + NZ public holidays)"}
+                    "(weekends + public holidays; NZ also 25 Dec-2 Jan per "
+                    "Companies Act 1993 s 2 / PPSA s 16)"}
 
 
 def t_ingest_docs(a: dict) -> dict:
@@ -190,7 +191,7 @@ TOOLS = [
          ["matter", "query"]), t_corpus_search),
     ("ironfleet_statutory_demand",
      "Validate a statutory demand and compute its compliance deadline from the "
-     "jurisdiction pack (NZ: 15 working days, s 241(4)(a); au/uk: 21 calendar days).", _schema({
+     "jurisdiction pack (NZ: 15 working days, s 289(2)(d); au/uk: 21 calendar days).", _schema({
          "amount": {"type": ["number", "string"]}, "debtor_company": {"type": "string"},
          "creditor": {"type": "string"}, "debt_details": {"type": "string"},
          "service_date": {"type": "string", "description": "YYYY-MM-DD"},

@@ -48,16 +48,17 @@ damage given the bank? matter: harbour-freight
    s 290 "substantial dispute" knock-out. The debtor's 3 Aug 2026 email already
    pleaded "stale, surely there is a time limit".
 2. **Statutory demand kernel called** (amount vs the $1,000 minimum; 15 working days
-   from service under s 241(4)(a) via the deadline tool).
+   from service under s 289(2)(d) via the deadline tool).
 3. **The 3 Aug 2026 $22,000 payment flagged as a voidable-preference exposure**
-   (Insolvency Act 2006 s 292; the board minutes concede insolvency in Sept 2026, and
-   the emails show Southern Haulage KNEW of the hardship → weak s 296 defence).
+   (Companies Act 1993 s 292; the board minutes concede insolvency in Sept 2026, and
+   the emails show Southern Haulage KNEW of the hardship → weak s 296(3) defence).
    Authority gold in the corpus: Madsen-Ries v Cooper, McIntosh v Fisk, Levin v Ikiua,
    Camray Farms, Kaikoura Freight, LSF Trustees.
 4. **PPSA twist caught**: the client's financing statement (8 Apr 2025) came years
-   after the equipment was first delivered (2019) — far outside PPSA s 40's
-   20-business-day perfection window → interest unperfected/vests in insolvency; the
-   bank's Jan 2024 GSA is first-in-time and perfected. Portacom/NZ Bloodstock live in
+   after the equipment was first delivered (2019) — far outside the PMSI window (PPSA
+   s 73(1): perfected within 10 working days of possession) → unperfected 2019 to
+   8 Apr 2025 (s 41) and behind the bank, whose Jan 2024 GSA registered first (s 66).
+   No insolvency-vesting rule is in the five Acts — [NOT IN CORPUS] is correct there. Portacom/NZ Bloodstock live in
    Set_2 if you ingest it.
 5. **26% default interest tested against penalty doctrine** (CCLA 2017), not silently
    claimed.
