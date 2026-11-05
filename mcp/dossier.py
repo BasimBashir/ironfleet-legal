@@ -22,8 +22,9 @@ ENTITIES = {
     "court_events": "court-events.jsonl",
     "deadlines": "deadlines.jsonl",
     "outcomes": "outcomes.jsonl",
+    "flaws": "flaws.jsonl",
 }
-# the flaw ledger is deliberately absent — that register belongs to M6's moot gate
+# register #9 (M6): the flaw ledger — append-only, last-status-wins per flaw_id
 
 _DUE_SOON_DAYS = 7
 
@@ -133,6 +134,17 @@ def read(matter: str, entity: str, workspace: str | None = None) -> dict:
                     for e in _events(d, ENTITIES["outcomes"])}
         out["unresolved"] = [e.get("prediction_id") for e in events
                              if e.get("prediction_id") not in resolved]
+    elif entity == "flaws":
+        latest: dict[str, dict] = {}
+        for e in events:
+            if e.get("flaw_id"):
+                latest[str(e["flaw_id"])] = e
+        open_rows = [e for e in latest.values() if e.get("status") == "open"]
+        counts = {s: sum(1 for e in open_rows if e.get("severity") == s)
+                  for s in ("critical", "material", "minor")}
+        out["open"] = open_rows
+        out["open_counts"] = counts
+        out["gate_blocked"] = counts["critical"] > 0 or counts["material"] > 0
     return out
 
 

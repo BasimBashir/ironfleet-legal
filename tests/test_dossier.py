@@ -1,7 +1,7 @@
-# tests/test_dossier.py — the M5 case-dossier self-check: eight append-only JSONL
-# registers, the debrief prediction-vs-outcome diff, kernel-only deadlines, and the
-# R-CL2 per-doc corpus delete/reingest — all offline (fake embeddings, no Ollama,
-# no Claude, no network).
+# tests/test_dossier.py — the M5 case-dossier self-check: nine append-only JSONL
+# registers (M6 adds the flaw ledger), the debrief prediction-vs-outcome diff,
+# kernel-only deadlines, and the R-CL2 per-doc corpus delete/reingest — all
+# offline (fake embeddings, no Ollama, no Claude, no network).
 import sys
 from datetime import date, timedelta
 from pathlib import Path
@@ -36,17 +36,21 @@ def test_append_and_read_roundtrip(ws):
     assert out["count"] == 1 and out["events"][0]["value"] == "$126,000"
 
 
-def test_all_eight_registers(ws):
+def test_all_nine_registers(ws):
     assert set(dossier.ENTITIES) == {"facts", "evidence", "strategy", "proposals",
                                      "predictions", "court_events", "deadlines",
-                                     "outcomes"}
+                                     "outcomes", "flaws"}
     for entity in dossier.ENTITIES:
         dossier.append("m", entity, {"x": 1}, workspace=str(ws))
         assert dossier.read("m", entity, workspace=str(ws))["count"] == 1
 
 
 def test_bad_entity_refused(ws):
-    # the flaw ledger is M6's register — it must not silently exist
+    # "flaws" is register #9 since M6; unknown names are still refused loudly
+    dossier.append("m", "flaws", {"flaw_id": "F0", "class": "misquote",
+                                  "severity": "minor", "doc": "x.md",
+                                  "status": "open"}, workspace=str(ws))
+    assert dossier.read("m", "flaws", workspace=str(ws))["count"] == 1
     with pytest.raises(RuntimeError):
         dossier.append("m", "flaw_ledger", {}, workspace=str(ws))
 

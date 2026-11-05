@@ -44,7 +44,7 @@ Claude Desktop / Cowork: Customize → Plugins → **Add marketplace** →
 
 ## Commands
 
-The plugin ships eight commands (type `/ironfleet-legal:` in a session to see them):
+The plugin ships eleven commands (type `/ironfleet-legal:` in a session to see them):
 
 | Command | What it does |
 |---|---|
@@ -56,6 +56,9 @@ The plugin ships eight commands (type `/ironfleet-legal:` in a session to see th
 | `/ironfleet-legal:debrief <matter> [minute]` | Court round in, prediction-vs-outcome diff, strategy vN+1, kernel deadlines |
 | `/ironfleet-legal:case-status <matter>` | One-screen dossier card: deadlines, open predictions, latest strategy |
 | `/ironfleet-legal:next-actions <matter>` | The do-this-now list: overdue + due-soon deadlines, strategy actions |
+| `/ironfleet-legal:moot <matter> <draft>` | The moot gate: attack a draft until it survives, then mark it final-capable (see below) |
+| `/ironfleet-legal:hearing-pack <matter>` | The hearing pack: bring list, opening script, bench Q&A, cross-exam plan, objection cheat-sheet |
+| `/ironfleet-legal:mock-hearing <matter>` | Rehearsal: the coach plays bench and opposing counsel and critiques every answer you give |
 
 A complete worked example lives in this repo:
 [dummy-case-harbour-freight/](dummy-case-harbour-freight/) — five synthetic case
@@ -172,6 +175,63 @@ the single writer. On top of it:
   strategy v2 → v3, outcomes recorded, kernel parity asserted) plus the CRUD
   roundtrip — exit 0 proves the whole loop. See
   [CHANGELOG.md](CHANGELOG.md) for the full history.
+
+## What's new in 0.5.0 — the moot gate and hearing prep
+
+Nothing is marked final without a passed gate. A draft that declares itself final
+(the exact line `status: final`) must carry a `moot-gate: PASSED <run_id>` marker —
+a **Write/Edit hook denies the write otherwise**. A CAPPED draft (still flawed after
+4 attack rounds) is never marked final: it goes to approval with every flaw listed.
+The fleet grows to 19 agents (+opposing-counsel, bench, procedural-examiner,
+evidence-examiner, hearing-coach) and 22 tools (+`ironfleet_moot_check`,
+`ironfleet_flaw_ledger` — the ninth dossier register, append-only, last-status-wins).
+
+- **`/ironfleet-legal:moot <matter> <draft>`** — the gate itself. What it does:
+  runs the mechanical pre-pass (`ironfleet_moot_check`: quotes/refs vs the corpus,
+  dates vs the run's kernel computations, unregistered exhibits, statutory-demand
+  form re-validated by the kernel, citator as informational minors), logs every flaw
+  to the ledger, then up to 4 adversarial rounds — the drafting crew fixes or answers
+  each attack in prose. How to use:
+
+  ```
+  /ironfleet-legal:moot powell-builders matters/powell-builders/advice-letter.md
+  ```
+
+  Two consecutive clean rounds → the defensibility report carries
+  `moot-gate: PASSED <run_id>` and the draft may be marked final. Open flaws after
+  4 rounds → `CAPPED`: the flaws are listed, never hidden, and the draft stays
+  non-final. The gate measures the mechanical floor plus judgement rounds — it does
+  NOT promise a court accepts the document.
+- **`/ironfleet-legal:hearing-pack <matter>`** — what it does: assembles the hearing
+  pack from the dossier and the latest moot report — bring list (every registered
+  exhibit + copies), opening script (one corpus pin per claim), bench questions with
+  model answers (the **bench** agent), cross-examination plan, objection cheat-sheet
+  ("if they say X, you say Y" per flaw class), surprise protocol for unverified
+  documents. How to use:
+
+  ```
+  /ironfleet-legal:hearing-pack powell-builders
+  ```
+
+  Run it after `/moot` — a draft that never passed the gate is flagged at the top
+  of the pack.
+- **`/ironfleet-legal:mock-hearing <matter> [rounds]`** — what it does: rehearsal.
+  The **hearing-coach** agent plays bench AND opposing counsel, hardest questions
+  first; you answer aloud (the orchestrator relays, never answers for you) and after
+  each answer you get good / weak / sharper-answer, pinned to the record. How to use:
+
+  ```
+  /ironfleet-legal:mock-hearing powell-builders 10
+  ```
+
+  Ends with the rehearsal transcript (saved to the matter workspace) and your top-3
+  weak spots; offer of a focused second rehearsal. Feeds on the hearing pack.
+- **Seeded-flaw eval, in-repo:** `tests/moot-eval/` holds 30 flawed documents
+  (6 per class: wrong deadline, fabricated case, misquote, missing exhibit,
+  wrong form) + 4 clean controls; `tests/test_moot_eval.py` runs the gate over all
+  34 and holds the line at **≥ 0.90 detection, 0 false positives on the controls**
+  — measured 30/30 (1.00) with 0 FPs on this build, deterministic floor only.
+  `python tests/grade_dummy_case.py` now grades the gate too (exit 0).
 
 ## What changed since 0.1.0
 

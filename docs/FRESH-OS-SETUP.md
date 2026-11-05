@@ -184,6 +184,62 @@ checklist ground truths met. The run caught a working-day gap in the deadline ke
 Reads the finished run back in plain English — the answer, then each point with its
 passage, a link to it, the corpus source, and a verdict re-verified now. Writes no file.
 
+## 6c. New in 0.5.0: the moot gate, hearing pack, mock hearing (`/moot`, `/hearing-pack`, `/mock-hearing`)
+
+Three new commands close the loop from draft to courtroom, plus five new agents
+(opposing-counsel, bench, procedural-examiner, evidence-examiner, hearing-coach) and
+two new tools (`ironfleet_moot_check`, `ironfleet_flaw_ledger`). The rule they
+enforce: **nothing is marked final without a passed gate** — a draft saying
+`status: final` without a `moot-gate: PASSED <run_id>` line is refused by a Write
+hook before it lands.
+
+### `/moot` — attack the draft before the court does
+
+What it does: a mechanical pre-pass (every quote and authority checked against your
+corpus, every date against the kernel-computed deadlines, every exhibit against the
+evidence register, any statutory demand re-validated by the kernel), every flaw
+logged to the ninth dossier register, then up to four adversarial rounds where the
+crew fixes each attack or answers it in prose. How to use:
+
+```
+/ironfleet-legal:moot powell-builders matters/powell-builders/advice-letter.md
+```
+
+Two consecutive clean rounds → the defensibility report carries
+`moot-gate: PASSED <run_id>` and the draft may be marked final. Still flawed after
+four rounds → `CAPPED`: the flaws are listed, never hidden, and the draft stays
+non-final until you rule on them. The gate measures the mechanical floor plus the
+judgement rounds — it does NOT promise a court accepts the document.
+
+### `/hearing-pack` — everything you bring to the hearing
+
+What it does: assembles the pack from the dossier and the moot report — the bring
+list (every registered exhibit with copies count), a three-sentence opening script
+(one corpus pin per claim), likely bench questions with model answers, a
+cross-examination plan, an objection cheat-sheet ("if they say X, you say Y" per
+flaw class), and the surprise protocol for documents not in the record. How to use:
+
+```
+/ironfleet-legal:hearing-pack powell-builders
+```
+
+Run it after `/moot` — the pack flags at the top if the draft never passed the gate.
+
+### `/mock-hearing` — the rehearsal
+
+What it does: the hearing-coach plays bench AND opposing counsel, hardest questions
+first, one question at a time. You answer; the coach critiques each answer (what was
+good, what was weak, the sharper record-pinned answer) and never answers for you.
+How to use:
+
+```
+/ironfleet-legal:mock-hearing powell-builders 10
+```
+
+Ends with the rehearsal transcript saved to the matter workspace and your top-3 weak
+spots; it will offer a focused second rehearsal. Requires `/hearing-pack` first —
+the rehearsal feeds on its bench Q&A.
+
 ## 7. Headless / CI driving (optional, how this was verified)
 
 ```bash

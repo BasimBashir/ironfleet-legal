@@ -285,6 +285,112 @@ def m5_lifecycle(tmp: Path, failures: list[str]) -> None:
           f"empty because we deleted first)")
 
 
+def m6_moot(tmp: Path, failures: list[str]) -> None:
+    """The moot gate on a harbour-freight draft, fully offline: the seeded-flaw
+    draft is detected class by class; the clean draft passes; keep-if-better
+    holds its truth table; the ledger blocks the gate until flaws are fixed."""
+    import os
+    os.environ["HARNESS_HOME"] = str(tmp / "m6")   # own store, same rule as M5's
+    import harness.localstack as localstack
+    import server
+    localstack.embed_fn = fake1024
+
+    def run(tool: str, args: dict) -> dict:
+        return server.dispatch(tool, args)
+
+    def want(cond: bool, msg: str) -> None:
+        if not cond:
+            failures.append(msg)
+
+    ws = str(tmp / "matters" / "harbour-freight")
+    for f in sorted(DUMMY_DOCS.iterdir()):
+        if f.is_file():
+            run("ironfleet_ingest_docs", {"matter": MATTER, "path": str(f)})
+    runrec = run("ironfleet_begin_run",
+                 {"matter": MATTER, "prompt": "m6 grade", "workspace": ws})
+    run("ironfleet_dossier_append",
+        {"matter": MATTER, "workspace": ws, "entity": "evidence",
+         "event": {"op": "add", "label": "Exhibit A",
+                   "file": "supply-agreement.pdf"}})
+    run("ironfleet_log_event", {"run_id": runrec["run_id"], "event": "tool_result",
+                                "payload": {"tool": "ironfleet_filing_deadline",
+                                            "deadline": "2026-04-24", "days": 15,
+                                            "service_date": "2026-04-03"},
+                                "matter": MATTER, "workspace": ws})
+
+    # one draft, four seeded critical flaws (fabricated authority + misquote +
+    # unregistered exhibit + below-minimum SD), anchored on real corpus prose
+    flawed = tmp / "flawed-advice.md"
+    flawed.write_text(
+        'Advice: Southern Steel Ltd v Harbour City Warehousing Ltd [2022] NZHC 555 '
+        "applies. [E9.S9]\nPer the agreement \"The Customer pays each monthly "
+        'statement by the 25th day of the following month".\nThe statutory demand '
+        "sought payment of $950. See Exhibit F for the invoices.\n",
+        encoding="utf-8")
+    bad = run("ironfleet_moot_check", {"matter": MATTER, "path": str(flawed),
+                                       "run_id": runrec["run_id"], "workspace": ws})
+    got = {fl["class"] for fl in bad.get("flaws", [])}
+    want(not bad.get("ok"), "the seeded-flaw draft must NOT pass the gate")
+    for cls in ("fabricated_case", "misquote", "missing_exhibit", "wrong_form"):
+        want(cls in got, f"seeded {cls} not detected on the flawed draft "
+                         f"(flaws={sorted(got)})")
+    want(bool(bad.get("flaws")), "a CAPPED/gate-failed check must list its flaws, "
+                                 f"got {bad.get('flaws')}")
+    print(f"  flawed draft: {bad.get('blocking_count')} blocking flaws of classes "
+          f"{sorted(got)} — all listed")
+
+    clean = tmp / "clean-advice.md"
+    clean.write_text(
+        'Per the agreement "Any amount not paid by its due date bears default '
+        'interest at 26% per annum from due date until payment" [E1.S1], interest '
+        "is claimed on the unpaid statements. The contract is Exhibit A.\n",
+        encoding="utf-8")
+    good = run("ironfleet_moot_check", {"matter": MATTER, "path": str(clean),
+                                        "workspace": ws})
+    want(good.get("ok"), f"the clean draft must pass, got flaws="
+                         f"{[fl['class'] for fl in good.get('flaws', [])]}")
+    print(f"  clean draft: ok={good.get('ok')} (kernel checks need a run: none "
+          f"flagged without one)")
+
+    # keep-if-better truth table (the S7i bar, specs/12)
+    import moot
+    want(moot.compare({"critical": 2, "material": 1, "minor": 0},
+                      {"critical": 1, "material": 1, "minor": 0})["keep"],
+         "keep-if-better must KEEP a strict improvement")
+    want(not moot.compare({"critical": 2, "material": 1, "minor": 0},
+                          {"critical": 2, "material": 1, "minor": 0})["keep"],
+         "all-tie must ROLLBACK")
+    want(not moot.compare({"critical": 2, "material": 1, "minor": 0},
+                          {"critical": 2, "material": 2, "minor": 0})["keep"],
+         "a regression must ROLLBACK")
+    want(moot.compare({"critical": "x", "material": 1, "minor": 0},
+                      {"critical": 1, "material": 1, "minor": 0})["verdict"]
+         == "REFUSED", "an unusable leg must REFUSE")
+    print("  keep-if-better: improve->KEEP, all-tie->ROLLBACK, regression->"
+          "ROLLBACK, garbage->REFUSED")
+
+    # the flaw ledger blocks the gate until every critical/material row closes
+    led = run("ironfleet_flaw_ledger", {
+        "op": "append", "matter": MATTER, "workspace": ws,
+        "flaw": {"flaw_id": "F1", "class": "wrong_form", "severity": "critical",
+                 "doc": "flawed-advice.md", "detector": "moot-check",
+                 "status": "open"}})
+    want(led.get("flaw_id") == "F1", f"flaw ledger append failed: {led}")
+    blocked = run("ironfleet_flaw_ledger", {"op": "read", "matter": MATTER,
+                                            "workspace": ws})
+    want(blocked.get("gate_blocked") is True,
+         "the gate must be blocked while a critical flaw stands open")
+    run("ironfleet_flaw_ledger", {
+        "op": "append", "matter": MATTER, "workspace": ws,
+        "flaw": {"flaw_id": "F1", "class": "wrong_form", "severity": "critical",
+                 "doc": "flawed-advice.md", "status": "fixed"}})
+    cleared = run("ironfleet_flaw_ledger", {"op": "read", "matter": MATTER,
+                                            "workspace": ws})
+    want(cleared.get("gate_blocked") is False,
+         "fixing the last critical flaw must unblock the gate")
+    print("  ledger: open critical blocks the gate, fix unblocks it")
+
+
 def main() -> int:
     tmp = Path(tempfile.mkdtemp(prefix="g1-grade-"))
     failures: list[str] = []
@@ -296,6 +402,9 @@ def main() -> int:
     print("\n=== M5 dossier loop: two simulated court rounds + R-CL2 CRUD ===\n")
     m5_lifecycle(tmp, failures)
 
+    print("\n=== M6 moot gate: seeded flaws detected, keep-if-better, ledger ===\n")
+    m6_moot(tmp, failures)
+
     if failures:
         print(f"\nFAIL: {len(failures)} judgement(s) wrong:")
         for f in failures:
@@ -303,7 +412,8 @@ def main() -> int:
         return 1
     print("\nPASS: G1 quotes graded, two court rounds debriefed (strategy v1->v3, "
           "outcomes recorded, kernel-only deadlines, no unresolved predictions), "
-          "CRUD roundtrip clean")
+          "CRUD roundtrip clean, M6 moot gate: seeded flaws caught, keep-if-better "
+          "and the ledger hold")
     return 0
 
 

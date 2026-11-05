@@ -1,5 +1,16 @@
 {
   "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"${CLAUDE_PLUGIN_ROOT}/hooks/moot_gate_hook.py\""
+          }
+        ]
+      }
+    ],
     "PostToolUse": [
       {
         "matcher": "ironfleet_begin_run$",

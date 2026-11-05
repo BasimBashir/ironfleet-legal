@@ -18,6 +18,7 @@ os.environ["PYTHONPATH"] = _MCP_DIR + os.pathsep + os.environ.get("PYTHONPATH", 
 
 import records                                            # noqa: E402
 import dossier                                            # noqa: E402
+import moot as moot_gate                                  # noqa: E402
 from harness.corpus import CorpusStore, bound_tier, ironfleet_corpus_search  # noqa: E402
 from harness.module_e.kernel_tools import statutory_demand, without_prejudice  # noqa: E402
 from harness.module_e.vendored.court_calendar import court_filing_deadline  # noqa: E402
@@ -27,7 +28,7 @@ from harness.vectors import VectorStore                   # noqa: E402
 # VERSION must move together with the version fields in .claude-plugin/plugin.json
 # and .claude-plugin/marketplace.json — three hardcoded copies, no build step syncs
 # them yet (that lands with W3's operator CLI).
-VERSION = "0.4.0"
+VERSION = "0.5.0"
 
 
 def _stores():
@@ -183,6 +184,43 @@ def t_dossier_read(a: dict) -> dict:
 def t_debrief_ingest(a: dict) -> dict:
     return dossier.debrief(a["matter"], a["event"], workspace=a.get("workspace"),
                            actor=a.get("actor", "case-manager"))
+
+
+_SEVERITIES = ("critical", "material", "minor")
+_FLAW_STATUS = ("open", "fixed", "dismissed")
+
+
+def t_flaw_ledger(a: dict) -> dict:
+    """M6: the flaw ledger — append | read | compare. The moot gate's memory:
+    append-only events, last-status-wins per flaw_id; compare is the specs/12
+    keep-if-better bar over critical/material/minor counts."""
+    op = a.get("op", "read")
+    if op == "append":
+        f = a.get("flaw")
+        if not isinstance(f, dict):
+            raise RuntimeError("op=append needs flaw={flaw_id, class, severity, "
+                               "doc, status}")
+        if f.get("severity") not in _SEVERITIES:
+            raise RuntimeError(f"severity must be one of {_SEVERITIES}, "
+                               f"got {f.get('severity')!r}")
+        if f.get("status") not in _FLAW_STATUS:
+            raise RuntimeError(f"status must be one of {_FLAW_STATUS}, "
+                               f"got {f.get('status')!r}")
+        for k in ("flaw_id", "class", "doc"):
+            if not f.get(k):
+                raise RuntimeError(f"flaw row needs a non-empty {k!r}")
+        return dossier.append(a["matter"], "flaws", f, workspace=a.get("workspace"),
+                              actor=a.get("actor", "moot"))
+    if op == "read":
+        return dossier.read(a["matter"], "flaws", workspace=a.get("workspace"))
+    if op == "compare":
+        return moot_gate.compare(a.get("baseline"), a.get("candidate"))
+    raise RuntimeError(f"unknown op {op!r} (append | read | compare)")
+
+
+def t_moot_check(a: dict) -> dict:
+    return moot_gate.moot_check(a["matter"], a["path"], run_id=a.get("run_id"),
+                                workspace=a.get("workspace"))
 
 
 def t_deadline_register(a: dict) -> dict:
@@ -468,6 +506,31 @@ TOOLS = [
      "this is the deliberate replace.", _schema({
          "matter": MATTER, "path": {"type": "string", "description": "file or directory"},
          "trust_tier": {"type": "string"}}, ["matter", "path"]), t_reingest),
+    ("ironfleet_flaw_ledger",
+     "M6 moot gate: the flaw ledger — op=append one flaw row {flaw_id, class, "
+     "severity critical|material|minor, doc, status open|fixed|dismissed}; op=read "
+     "(events + open projection: open_counts, gate_blocked); op=compare is the "
+     "specs/12 keep-if-better bar over baseline/candidate {critical, material, "
+     "minor} counts (keep iff <= on all and < on >= 1; all-tie -> rollback). "
+     "Append-only; last status per flaw_id wins.", _schema({
+         "matter": MATTER, "op": {"type": "string", "enum": ["append", "read",
+                                                             "compare"]},
+         "workspace": {"type": "string"},
+         "flaw": {"type": "object"}, "baseline": {"type": "object"},
+         "candidate": {"type": "object"}, "actor": {"type": "string"}},
+         ["matter"]), t_flaw_ledger),
+    ("ironfleet_moot_check",
+     "M6 moot gate: the deterministic pre-pass over one draft — objections "
+     "(authority/quote/kernel dates/SD-not-computed), exhibit refs vs the evidence "
+     "register, statutory-demand terms re-validated by the kernel, citator "
+     "surfacing (minor, never blocks). Returns flaw rows "
+     "{class, severity, detector, detail, line}; ok=false means blocking "
+     "(critical/material) flaws stand — fix each or answer it in prose, then "
+     "re-run.", _schema({
+         "matter": MATTER, "path": {"type": "string"},
+         "run_id": {"type": "string", "description": "optional run whose logged "
+                    "kernel computations date-check the draft"},
+         "workspace": {"type": "string"}}, ["matter", "path"]), t_moot_check),
 ]
 
 HANDLERS = {name: fn for name, _d, _s, fn in TOOLS}

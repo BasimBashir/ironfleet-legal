@@ -1,0 +1,141 @@
+{
+ "docs": [
+  {
+   "file": "docs/c1.md",
+   "class": "clean"
+  },
+  {
+   "file": "docs/c2.md",
+   "class": "clean"
+  },
+  {
+   "file": "docs/c3.md",
+   "class": "clean"
+  },
+  {
+   "file": "docs/c4.md",
+   "class": "clean"
+  },
+  {
+   "file": "docs/wd-1.md",
+   "class": "wrong_deadline"
+  },
+  {
+   "file": "docs/wd-2.md",
+   "class": "wrong_deadline"
+  },
+  {
+   "file": "docs/wd-3.md",
+   "class": "wrong_deadline"
+  },
+  {
+   "file": "docs/wd-4.md",
+   "class": "wrong_deadline"
+  },
+  {
+   "file": "docs/wd-5.md",
+   "class": "wrong_deadline"
+  },
+  {
+   "file": "docs/wd-6.md",
+   "class": "wrong_deadline"
+  },
+  {
+   "file": "docs/mq-1.md",
+   "class": "misquote"
+  },
+  {
+   "file": "docs/mq-2.md",
+   "class": "misquote"
+  },
+  {
+   "file": "docs/mq-3.md",
+   "class": "misquote"
+  },
+  {
+   "file": "docs/mq-4.md",
+   "class": "misquote"
+  },
+  {
+   "file": "docs/mq-5.md",
+   "class": "misquote"
+  },
+  {
+   "file": "docs/mq-6.md",
+   "class": "misquote"
+  },
+  {
+   "file": "docs/fb-1.md",
+   "class": "fabricated_case"
+  },
+  {
+   "file": "docs/fb-2.md",
+   "class": "fabricated_case"
+  },
+  {
+   "file": "docs/fb-3.md",
+   "class": "fabricated_case"
+  },
+  {
+   "file": "docs/fb-4.md",
+   "class": "fabricated_case"
+  },
+  {
+   "file": "docs/fb-5.md",
+   "class": "fabricated_case"
+  },
+  {
+   "file": "docs/fb-6.md",
+   "class": "fabricated_case"
+  },
+  {
+   "file": "docs/me-1.md",
+   "class": "missing_exhibit"
+  },
+  {
+   "file": "docs/me-2.md",
+   "class": "missing_exhibit"
+  },
+  {
+   "file": "docs/me-3.md",
+   "class": "missing_exhibit"
+  },
+  {
+   "file": "docs/me-4.md",
+   "class": "missing_exhibit"
+  },
+  {
+   "file": "docs/me-5.md",
+   "class": "missing_exhibit"
+  },
+  {
+   "file": "docs/me-6.md",
+   "class": "missing_exhibit"
+  },
+  {
+   "file": "docs/wf-1.md",
+   "class": "wrong_form"
+  },
+  {
+   "file": "docs/wf-2.md",
+   "class": "wrong_form"
+  },
+  {
+   "file": "docs/wf-3.md",
+   "class": "wrong_form"
+  },
+  {
+   "file": "docs/wf-4.md",
+   "class": "wrong_form"
+  },
+  {
+   "file": "docs/wf-5.md",
+   "class": "wrong_form"
+  },
+  {
+   "file": "docs/wf-6.md",
+   "class": "wrong_form"
+  }
+ ],
+ "bar": 0.9
+}
