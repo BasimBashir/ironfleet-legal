@@ -44,7 +44,7 @@ Claude Desktop / Cowork: Customize → Plugins → **Add marketplace** →
 
 ## Commands
 
-The plugin ships five commands (type `/ironfleet-legal:` in a session to see them):
+The plugin ships eight commands (type `/ironfleet-legal:` in a session to see them):
 
 | Command | What it does |
 |---|---|
@@ -53,6 +53,9 @@ The plugin ships five commands (type `/ironfleet-legal:` in a session to see the
 | `/ironfleet-legal:sync-law <folder> [matter: law]` | Statutes/judgments YOU downloaded into the corpus, with a currency date |
 | `/ironfleet-legal:process-case <ask> [matter: <ref>]` | The nine-stage crew: one prompt in, court-ready deliverables out |
 | `/ironfleet-legal:explain <ref>` | Plain-English walkthrough of a finished run, every passage re-verified |
+| `/ironfleet-legal:debrief <matter> [minute]` | Court round in, prediction-vs-outcome diff, strategy vN+1, kernel deadlines |
+| `/ironfleet-legal:case-status <matter>` | One-screen dossier card: deadlines, open predictions, latest strategy |
+| `/ironfleet-legal:next-actions <matter>` | The do-this-now list: overdue + due-soon deadlines, strategy actions |
 
 A complete worked example lives in this repo:
 [dummy-case-harbour-freight/](dummy-case-harbour-freight/) — five synthetic case
@@ -141,6 +144,34 @@ Reads a finished run back in plain English: the direct answer, then each point o
 advice with the passage quoted, a clickable link to it, the corpus source it matched,
 and a fresh verification verdict (re-checked now, not trusted from the run). It adds
 no new analysis and writes no file; anything unverified is shown loudly as such.
+
+## What's new in 0.4.0 — the case dossier and the debrief loop
+
+The plugin now keeps a per-matter **case dossier**: eight append-only registers —
+facts, evidence, strategy versions, proposals, predictions, court events, deadlines,
+outcomes — as local JSONL next to the records ledger, with a `case-manager` agent as
+the single writer. On top of it:
+
+- **`/ironfleet-legal:debrief <matter> [minute]`** — after a court round: the minute
+  (or order) is ingested, every open prediction is diffed mechanically against what
+  the court actually decided, the case-manager records one outcome verdict per
+  prediction (match is judgement, stored as data), the strategist cuts strategy
+  vN+1, and every new deadline is registered **kernel-computed** — a model-supplied
+  date is refused outright.
+- **`/ironfleet-legal:case-status <matter>`** — read-only one-screen card: deadline
+  clock (ok/due_soon/overdue, computed against today by the tool, never softened by
+  the model), open proposals, court rounds, unresolved predictions, latest strategy.
+- **`/ironfleet-legal:next-actions <matter>`** — the do-this-now list assembled
+  mechanically from three sources: overdue + due-soon deadlines, the latest
+  strategy's next actions, and the predictions "watching" for the next round.
+- **Corpus CRUD:** `ironfleet_delete_docs` removes one document (docs row, FTS,
+  citation keys, vectors) and `ironfleet_reingest` re-ingests an edited source as a
+  deliberate replace — sha256 resume alone cannot pick up an edit.
+- **Reproducible grading, extended:** `python tests/grade_dummy_case.py` now also
+  takes the dummy case through TWO simulated court rounds offline (debrief → diff →
+  strategy v2 → v3, outcomes recorded, kernel parity asserted) plus the CRUD
+  roundtrip — exit 0 proves the whole loop. See
+  [CHANGELOG.md](CHANGELOG.md) for the full history.
 
 ## What changed since 0.1.0
 

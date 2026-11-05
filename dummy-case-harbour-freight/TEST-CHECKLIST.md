@@ -74,3 +74,30 @@ Fast (above): dummy docs only — minutes on CPU. Full: add the key statutes fir
 1999.md, Limitation Act 2010.md from Desktop/nz — .md only, they duplicate the .pdfs),
 then Set_2's 31 judgment PDFs LAST (CPU embedding is slow; expect hours). The run is
 answerable from the dummy docs alone; statutes+cases make the citations verbatim-ground.
+
+## 6. Two simulated court rounds (M5 dossier loop, replayable offline)
+
+The dossier loop is graded mechanically by `python tests/grade_dummy_case.py`
+(extended for M5): it seeds strategy v1 + predictions, ingests round 1
+(`court-rounds/minute-round-1.md`: judgment $126,000 but payment in **20 working
+days**, not immediate → prediction miss), cuts strategy v2, ingests round 2
+(`court-rounds/minute-round-2.md`: $100,000 part payment received, **balance
+$26,000** outstanding → leave to enforce), cuts v3, and asserts the whole chain.
+The same rounds replay LIVE with `/ironfleet-legal:debrief matter: harbour-freight`.
+
+Expected dossier end-state (ground truths):
+
+1. **Strategy versions 1→2→3**, each with a `why_changed` naming what the court
+   decided that the previous version got wrong.
+2. **Outcomes recorded per prediction**: p1 **match=false** (court ordered payment
+   in 20 working days, not the predicted immediate payment), p2 **match=true**
+   (judgment for the claimant), p3 **match=false** (part payment $100,000 only;
+   $26,000 balance outstanding → enforcement path).
+3. **Deadlines kernel-dated only**: the payment deadline registered from the
+   minute-1 service date (20 working days) comes back equal to
+   `ironfleet_filing_deadline` on the same inputs — never a model-invented date
+   (a `due` in the tool arguments is refused with an error).
+4. **After round 2: no unresolved predictions** (every diff entry has an outcomes
+   row) and the enforcement deadline + CMC dates registered from minute-2.
+5. The two minute files are synthetic (fictional judge, fictional CIV number) and
+   stay OUT of the ingested corpus (same leak rule as this checklist itself).

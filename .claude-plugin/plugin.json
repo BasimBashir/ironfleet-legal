@@ -1,7 +1,7 @@
 {
   "name": "ironfleet-legal",
   "displayName": "IronFleet Legal",
-  "version": "0.3.2",
+  "version": "0.4.0",
   "description": "NZ legal paralegal for Claude: ingest a matter's documents into a local citation-exact corpus, run the nine-stage multi-agent case pipeline, get court-ready deliverables with verbatim-quote grounding and a full per-run paper trail.",
   "author": {
     "name": "IronFleet"

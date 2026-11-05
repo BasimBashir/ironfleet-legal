@@ -444,6 +444,34 @@ class CorpusStore:
             for kind in ("docs", "fts", "cites"):
                 c.execute(f"DROP TABLE IF EXISTS {_mtable(matter_ref, kind)}")
 
+    def delete_doc(self, matter_ref: str, doc_id: str) -> dict:
+        """R-CL2 D: remove ONE ingested doc — docs row, its FTS chunks, their cites,
+        and its vectors (texts reconstructed from the FTS rows exactly as add() stored
+        them: heading + newline + body, so the delete is exact, not a re-split guess).
+        Returns {chunks, vectors} removed (0/0 = unknown doc_id). drop_matter stays
+        the whole-matter purge."""
+        with self._c() as c:
+            try:
+                rows = c.execute(
+                    f"SELECT heading, body FROM {_mtable(matter_ref, 'fts')} "
+                    "WHERE doc_id=? ORDER BY rowid", (doc_id,)).fetchall()
+            except sqlite3.OperationalError:            # matter never ingested
+                return {"chunks": 0, "vectors": 0}
+            if not rows:
+                return {"chunks": 0, "vectors": 0}
+            c.execute(f"DELETE FROM {_mtable(matter_ref, 'cites')} WHERE fts_rowid IN "
+                      f"(SELECT rowid FROM {_mtable(matter_ref, 'fts')} "
+                      "WHERE doc_id=?)", (doc_id,))
+            c.execute(f"DELETE FROM {_mtable(matter_ref, 'fts')} WHERE doc_id=?",
+                      (doc_id,))
+            c.execute(f"DELETE FROM {_mtable(matter_ref, 'docs')} WHERE doc_id=?",
+                      (doc_id,))
+        vectors = 0
+        if self._vectors is not None:
+            vectors = self._vectors.delete(
+                matter_ref, [f"{h}\n{b}" if h else b for h, b in rows])
+        return {"chunks": len(rows), "vectors": vectors}
+
     def _cited_hits(self, matter_ref: str, query: str, k: int) -> list[CorpusHit]:
         """Citation-injected candidates: a citation named in the query is a join key on
         cites_<m>, bypassing BM25's length/IDF dilution — the amendment the measured
