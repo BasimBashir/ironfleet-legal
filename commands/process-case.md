@@ -12,6 +12,14 @@ below in order, one named subagent per stage (Task tool, agent `ironfleet-legal:
 and you own the run record. Nine fresh stage contexts beat one bloated one: each stage
 agent starts fresh and reads ONLY what it needs.
 
+**Dispatch rule (any harness).** In Claude Code the stage agents are registered as
+`ironfleet-legal:<name>`. In another harness, use its own subagent mechanism with the
+agent named `<name>` if it lists one; otherwise call `ironfleet_agent_brief` (name) and
+hand that brief, verbatim, to a fresh subagent your harness can spawn. Only if the
+harness has no subagents at all, run the stage yourself from the brief — and log
+`ironfleet_log_event` (event `exception`, payload `{stage, reason: "inline stage, no
+subagent support"}`) so the record states that the stage did not get a fresh context.
+
 ## Setup (do this before stage 1)
 
 1. **Matter ref + workspace.** If the ask names a matter, use it (colon-free: letters,

@@ -236,3 +236,47 @@ def test_resources_wire_protocol(tmp_path, monkeypatch):
     assert replies[3]["result"]["contents"][0]["uri"] == uri
     assert replies[4]["error"]["code"] == -32002
     assert replies[5]["error"]["code"] == -32601
+
+
+def test_prompts_and_agent_brief_wire_protocol(monkeypatch):
+    """H1: every command is an MCP prompt ($ARGUMENTS filled) and every stage agent
+    a brief, so harnesses that cannot load the Claude layout still get the kit."""
+    msgs = [json.dumps(m) for m in [
+        {"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {}},
+        {"jsonrpc": "2.0", "id": 2, "method": "prompts/list"},
+        {"jsonrpc": "2.0", "id": 3, "method": "prompts/get",
+         "params": {"name": "process-case",
+                    "arguments": {"arguments": "can we win? matter: acme"}}},
+        {"jsonrpc": "2.0", "id": 4, "method": "prompts/get",
+         "params": {"name": "../README"}},
+        {"jsonrpc": "2.0", "id": 5, "method": "tools/call",
+         "params": {"name": "ironfleet_agent_brief",
+                    "arguments": {"name": "ironfleet-legal:hunter"}}},
+    ]] + [""]
+    monkeypatch.setattr(sys, "stdin", io.StringIO("\n".join(msgs)))
+    out = io.StringIO()
+    monkeypatch.setattr(sys, "stdout", out)
+    server.main()
+    r = {x["id"]: x for x in (json.loads(l) for l in out.getvalue().splitlines())}
+    assert r[1]["result"]["capabilities"]["prompts"] == {}
+    names = {p["name"] for p in r[2]["result"]["prompts"]}
+    assert names == {p.stem for p in (PLUGIN / "commands").glob("*.md")}
+    text = r[3]["result"]["messages"][0]["content"]["text"]
+    assert "can we win? matter: acme" in text and "$ARGUMENTS" not in text
+    assert not text.startswith("---")                        # frontmatter stripped
+    assert r[4]["error"]["code"] == -32602                   # no path walking
+    brief = json.loads(r[5]["result"]["content"][0]["text"])
+    assert brief["name"] == "hunter" and brief["brief"].strip()
+
+
+def test_command_tool_for_harnesses_without_mcp_prompts():
+    out = server.dispatch("ironfleet_command", {"name": "ingest", "arguments": "docs matter: acme"})
+    assert "docs matter: acme" in out["instructions"] and "$ARGUMENTS" not in out["instructions"]
+    with pytest.raises(RuntimeError):
+        server.dispatch("ironfleet_command", {"name": "../../README"})
+
+
+def test_plugin_info_names_the_kit():
+    info = server.t_plugin_info({})
+    assert Path(info["plugin_root"]) == PLUGIN and info["version"] == server.VERSION
+    assert "process-case" in info["commands"] and "hunter" in info["agents"]

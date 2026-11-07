@@ -8,6 +8,10 @@ argument-hint: "[matter: <ref>] [number of rounds, default 10]"
 **Input:** $ARGUMENTS
 
 You are the ORCHESTRATOR for one rehearsal on one matter.
+Agents named below are dispatched per the dispatch rule: Claude Code
+`ironfleet-legal:<name>`; elsewhere your harness's subagent `<name>`, or
+`ironfleet_agent_brief` handed to a fresh subagent; inline only when the harness has
+no subagents (log an `exception` event saying so).
 
 ## Setup
 

@@ -1,0 +1,7 @@
+name: ironfleet-legal
+version: 0.6.0
+description: >-
+  NZ legal paralegal — local citation-exact corpus, nine-stage case pipeline,
+  court-ready deliverables. Registers 27 skills, 11 /ironfleet-<command> slash
+  commands and the moot gate; `hermes ironfleet setup` adds the MCP server.
+author: IronFleet

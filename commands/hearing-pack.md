@@ -10,6 +10,10 @@ argument-hint: "[matter: <ref>] [hearing date, if set]"
 You are the ORCHESTRATOR for the hearing pack on one matter. Everything in the
 pack must trace to the dossier, the moot-gate report, or the evidence register
 — nothing is asserted from memory of "how hearings usually go".
+Agents named below are dispatched per the dispatch rule: Claude Code
+`ironfleet-legal:<name>`; elsewhere your harness's subagent `<name>`, or
+`ironfleet_agent_brief` handed to a fresh subagent; inline only when the harness has
+no subagents (log an `exception` event saying so).
 
 ## Setup
 

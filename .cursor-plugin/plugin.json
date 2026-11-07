@@ -1,0 +1,17 @@
+{
+  "name": "ironfleet-legal",
+  "displayName": "IronFleet Legal",
+  "version": "0.6.0",
+  "description": "NZ legal paralegal: ingest a matter's documents into a local citation-exact corpus, run the nine-stage multi-agent case pipeline, get court-ready deliverables with verbatim-quote grounding and a full per-run paper trail.",
+  "author": {
+    "name": "IronFleet"
+  },
+  "homepage": "https://github.com/BasimBashir/ironfleet-legal",
+  "repository": "https://github.com/BasimBashir/ironfleet-legal",
+  "license": "MIT",
+  "keywords": ["legal", "new-zealand", "law", "paralegal", "rag"],
+  "skills": "./skills/",
+  "commands": "./commands/",
+  "agents": "./agents/",
+  "mcpServers": "./.mcp.json"
+}

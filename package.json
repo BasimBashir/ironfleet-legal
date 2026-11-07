@@ -1,0 +1,17 @@
+{
+  "name": "ironfleet-legal",
+  "version": "0.6.0",
+  "description": "NZ legal paralegal: local citation-exact corpus, nine-stage case pipeline, court-ready deliverables. OpenCode plugin + Pi package (the same repo is the Claude Code / Codex / Grok / Copilot plugin).",
+  "type": "module",
+  "private": true,
+  "main": "opencode/index.js",
+  "keywords": ["pi-package", "opencode-plugin", "legal", "new-zealand"],
+  "license": "MIT",
+  "homepage": "https://github.com/BasimBashir/ironfleet-legal",
+  "repository": "https://github.com/BasimBashir/ironfleet-legal",
+  "pi": {
+    "extensions": ["./pi/extension.ts"],
+    "skills": ["./skills"],
+    "prompts": ["./commands/*.md"]
+  }
+}

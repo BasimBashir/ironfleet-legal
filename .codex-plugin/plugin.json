@@ -1,0 +1,39 @@
+{
+  "name": "ironfleet-legal",
+  "version": "0.6.0",
+  "description": "NZ legal paralegal: ingest a matter's documents into a local citation-exact corpus, run the nine-stage multi-agent case pipeline, get court-ready deliverables with verbatim-quote grounding and a full per-run paper trail.",
+  "author": {
+    "name": "IronFleet"
+  },
+  "homepage": "https://github.com/BasimBashir/ironfleet-legal",
+  "repository": "https://github.com/BasimBashir/ironfleet-legal",
+  "license": "MIT",
+  "keywords": [
+    "legal",
+    "new-zealand",
+    "law",
+    "paralegal",
+    "rag"
+  ],
+  "skills": "./skills/",
+  "mcpServers": {
+    "ironfleet": {
+      "command": "python",
+      "args": ["mcp/server.py"],
+      "cwd": "."
+    }
+  },
+  "hooks": "./hooks/codex-hooks.json",
+  "interface": {
+    "displayName": "IronFleet Legal",
+    "shortDescription": "NZ paralegal: citation-exact corpus, nine-stage case pipeline, court-ready deliverables",
+    "category": "Legal",
+    "capabilities": ["Interactive", "Read", "Write"],
+    "websiteURL": "https://github.com/BasimBashir/ironfleet-legal",
+    "defaultPrompt": [
+      "Run the IronFleet doctor preflight",
+      "Ingest my matter documents into the IronFleet corpus",
+      "Run the IronFleet process-case pipeline on my matter"
+    ]
+  }
+}

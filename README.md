@@ -1,6 +1,7 @@
-# IronFleet Legal — a NZ paralegal in Claude
+# IronFleet Legal — a NZ paralegal in Claude (and Codex, Grok, OpenCode, Pi, Hermes, …)
 
-One plugin turns Claude into an end-to-end New Zealand legal assistant: ingest a matter's
+One plugin turns Claude — or any of the agent harnesses below — into an end-to-end New
+Zealand legal assistant: ingest a matter's
 documents into a **local, citation-exact corpus**, run a **nine-stage multi-agent case
 pipeline** with one prompt, and get court-ready deliverables — `advice-letter.md`,
 `filings-roadmap.md`, `win-assessment.md` (PROCEED vs MINIMUM-DAMAGE), `citation-check.md`,
@@ -28,8 +29,9 @@ provenance-stamped, every run leaving a complete paper trail.
   AI-use disclosure built from the run's own trace.
 - **Mechanical-only MCP** — the plugin's local tools (corpus search, quote verifier,
   citator, statutory-demand kernel, without-prejudice detector, working-day deadline
-  arithmetic) make ZERO LLM calls. The intelligence is your own Claude account;
-  embeddings run on your local Ollama. Nothing in this plugin egresses.
+  arithmetic) make ZERO LLM calls. The intelligence is your own Claude account (or
+  whatever model your harness runs); embeddings run on your local Ollama. Nothing in
+  this plugin egresses.
 
 ## Install
 
@@ -41,6 +43,32 @@ claude plugin install ironfleet-legal@ironfleet-legal --config consent_local_pro
 Claude Desktop / Cowork: Customize → Plugins → **Add marketplace** →
 `BasimBashir/ironfleet-legal` → Install. Full first-run walkthrough:
 [docs/FRESH-OS-SETUP.md](docs/FRESH-OS-SETUP.md).
+
+### Other harnesses
+
+The same repo installs natively in other agent harnesses — one source of truth, no
+copies. Every harness gets the 25 MCP tools and the 27 skills; how the 11 commands,
+the 19 stage agents and the moot gate arrive differs, and is spelled out per harness
+in [docs/FRESH-OS-SETUP.md §1b](docs/FRESH-OS-SETUP.md#1b-other-harnesses).
+
+| Harness | Install |
+|---|---|
+| OpenAI Codex (CLI + app) | `codex plugin marketplace add BasimBashir/ironfleet-legal` then `codex plugin add ironfleet-legal@ironfleet-legal` |
+| xAI Grok Build | `grok plugin install BasimBashir/ironfleet-legal --trust` |
+| GitHub Copilot CLI | `copilot plugin marketplace add BasimBashir/ironfleet-legal` then `copilot plugin install ironfleet-legal@ironfleet-legal` |
+| OpenCode (≥ 1.18.29 or 2.x) | add `"ironfleet-legal@git+https://github.com/BasimBashir/ironfleet-legal.git"` to `plugin` (1.x) / `plugins` (2.x) in `opencode.json` |
+| Pi | `pi install git:github.com/BasimBashir/ironfleet-legal` |
+| Hermes Agent | `hermes plugins install BasimBashir/ironfleet-legal --enable` then `hermes ironfleet setup` |
+| DeepSeek Harness (dsh) | `git clone https://github.com/BasimBashir/ironfleet-legal ~/.dsh/ironfleet-legal` then `python ~/.dsh/ironfleet-legal/scripts/install_dsh.py` |
+| Cursor (and Grok Bot, which uses Cursor's plugin library) | `cursor-agent plugin marketplace add https://github.com/BasimBashir/ironfleet-legal`, then install from `/plugin` |
+| Gemini CLI | `gemini extensions install https://github.com/BasimBashir/ironfleet-legal` |
+| Factory Droid | `droid plugin marketplace add https://github.com/BasimBashir/ironfleet-legal` then `droid plugin install ironfleet-legal@ironfleet-legal` |
+| Qwen Code | `qwen extensions install BasimBashir/ironfleet-legal:ironfleet-legal` |
+| Anything else with MCP + Agent Skills | the one MCP entry + skills path in [FRESH-OS-SETUP §1b](docs/FRESH-OS-SETUP.md#1b-other-harnesses) |
+
+Outside Claude Code, commands are also reachable by name from any harness: ask for
+"IronFleet process-case: <your ask>" and the agent fetches the workflow with
+`ironfleet_command`. Then run the doctor skill first, as on Claude.
 
 ## Commands
 
@@ -176,6 +204,27 @@ the single writer. On top of it:
   roundtrip — exit 0 proves the whole loop. See
   [CHANGELOG.md](CHANGELOG.md) for the full history.
 
+## What's new in 0.6.0 — every harness, one source of truth
+
+- **Installs natively in 11 more harnesses** (table above): Codex, Grok Build and
+  Copilot read the Claude plugin layout (Codex through its own
+  `.codex-plugin/plugin.json`, because it does not expand `${CLAUDE_PLUGIN_ROOT}`);
+  OpenCode, Pi and Hermes get thin adapters (`opencode/index.js`, `pi/extension.ts`,
+  `__init__.py`) that read the same `skills/`, `commands/`, `agents/` and
+  `mcp/server.py`; DeepSeek Harness gets `scripts/install_dsh.py`.
+- **The kit travels over MCP:** the server now serves the 11 commands as MCP prompts,
+  plus `ironfleet_command` (a command's instructions by name),
+  `ironfleet_agent_brief` (a stage agent's brief by name) and `ironfleet_plugin_info`
+  — 25 tools. Harnesses that cannot load our agent files still dispatch every stage
+  from its exact brief; a stage that has to run inline is logged as such.
+- **The moot gate is harness-agnostic:** one script now reads every write shape
+  (Claude Write/Edit, Codex `apply_patch`, Grok's camelCase payload, OpenCode, Pi
+  `edits[]`, Hermes `write_file`/`patch`). Where a harness runs no pre-write hook,
+  the commands tell the agent it is the gate.
+- **Fix:** the `nz-statutory-demand-validator` skill's frontmatter did not parse as
+  YAML (its metadata loaded empty); it now validates under `claude plugin validate
+  --strict`.
+
 ## What's new in 0.5.0 — the moot gate and hearing prep
 
 Nothing is marked final without a passed gate. A draft that declares itself final
@@ -272,7 +321,9 @@ Your corpus, records and deliverables live on YOUR machine, under the plugin's s
 (encrypted-volume enforced by doctor). Matter text you share in conversation enters your
 Claude account's context — consumer plans retain transcripts up to 30 days (5 years if
 model training is enabled); prefer **Team/Enterprise with training OFF** for privileged
-matters. The plugin ships no corpus content and never phones home.
+matters. In another harness the same applies to whichever model provider it is
+configured for: check that provider's retention and training terms, or run a local
+model. The plugin ships no corpus content and never phones home.
 
 ## Licence & attribution
 

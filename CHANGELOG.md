@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.6.0 (2026-11-07, unpublished)
+
+Every harness, one source of truth:
+
+- Native install paths for Codex (`.codex-plugin/plugin.json`, `hooks/codex-hooks.json`),
+  Grok Build / Copilot CLI / Droid / Qwen (the existing Claude layout), Cursor
+  (`.cursor-plugin/`), Gemini CLI (`gemini-extension.json`), OpenCode
+  (`package.json` + `opencode/index.js`, V1 and V2 plugin APIs), Pi (`package.json`
+  `pi` key + `pi/extension.ts` MCP bridge), Hermes Agent (`plugin.yaml` +
+  `__init__.py`), DeepSeek Harness (`scripts/install_dsh.py`). `AGENTS.md` explains
+  the kit to any agent.
+- MCP server: commands served as MCP prompts; new tools `ironfleet_command`,
+  `ironfleet_agent_brief`, `ironfleet_plugin_info` (25 tools).
+- Moot gate reads every harness's write shape (Write/Edit, `apply_patch`, camelCase
+  `toolInput`, `edits[]`, `write_file`/`patch`) and exposes `deny_reason()` for
+  in-process adapters.
+- Commands carry a harness-neutral dispatch rule; doctor finds the plugin root
+  outside Claude Code.
+- Fix: `nz-statutory-demand-validator` frontmatter was invalid YAML.
+- Tests: 128 (adapters, prompts, gate shapes); grader exit 0.
+
 ## 0.4.0 (2026-11-05, unpublished)
 
 The case dossier and the debrief loop (M5 prototype):

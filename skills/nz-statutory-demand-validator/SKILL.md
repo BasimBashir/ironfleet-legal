@@ -63,7 +63,7 @@ metadata:
       description: Days allowed.
     compliance_period_day_type:
       type: string
-      description: "working" (nz) or "calendar" (au/uk).
+      description: '"working" (nz) or "calendar" (au/uk).'
     service_date:
       type: string
       description: Service date (ISO-8601).

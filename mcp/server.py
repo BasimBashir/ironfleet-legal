@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import sys
 from pathlib import Path
 
@@ -28,7 +29,7 @@ from harness.vectors import VectorStore                   # noqa: E402
 # VERSION must move together with the version fields in .claude-plugin/plugin.json
 # and .claude-plugin/marketplace.json — three hardcoded copies, no build step syncs
 # them yet (that lands with W3's operator CLI).
-VERSION = "0.5.0"
+VERSION = "0.6.0"
 
 
 def _stores():
@@ -300,6 +301,67 @@ def t_reingest(a: dict) -> dict:
     return report
 
 
+# ------------------------------------------- the kit itself, for every harness (H1)
+# commands/*.md become MCP prompts and agents/*.md stage briefs, so a harness that
+# cannot load the Claude plugin layout still gets every command and every stage
+# agent from the same files — no per-harness copies to drift.
+
+_PLUGIN_ROOT = Path(_MCP_DIR).parent
+_KIT_NAME = re.compile(r"[a-z0-9][a-z0-9-]*")
+
+
+def _kit_doc(folder: str, name: str) -> tuple[dict, str]:
+    """(frontmatter, body) of commands/<name>.md or agents/<name>.md. The name is
+    allowlisted to [a-z0-9-] so it can never walk out of the folder."""
+    name = name.split(":")[-1].strip()          # accept `ironfleet-legal:<name>`
+    p = _PLUGIN_ROOT / folder / f"{name}.md"
+    if not _KIT_NAME.fullmatch(name) or not p.is_file():
+        known = ", ".join(sorted(x.stem for x in (_PLUGIN_ROOT / folder).glob("*.md")))
+        raise RuntimeError(f"unknown {folder[:-1]} {name!r}; known: {known}")
+    text = p.read_text(encoding="utf-8")
+    meta: dict = {}
+    if text.startswith("---"):
+        head, _, text = text[3:].partition("\n---")
+        for line in head.splitlines():
+            k, sep, v = line.partition(":")
+            if sep and not line.startswith(" "):
+                meta[k.strip()] = v.strip().strip('"')
+        text = text.lstrip("\n")
+    return meta, text
+
+
+def t_agent_brief(a: dict) -> dict:
+    meta, body = _kit_doc("agents", str(a.get("name", "")))
+    return {"name": meta.get("name", ""), "description": meta.get("description", ""),
+            "disallowed_tools": meta.get("disallowedTools", ""), "brief": body}
+
+
+def t_plugin_info(_a: dict) -> dict:
+    root, source = resolve_store_root()
+    return {"version": VERSION, "plugin_root": str(_PLUGIN_ROOT), "python": sys.executable,
+            "store_root": str(root), "store_root_source": source,
+            "commands": sorted(p.stem for p in (_PLUGIN_ROOT / "commands").glob("*.md")),
+            "agents": sorted(p.stem for p in (_PLUGIN_ROOT / "agents").glob("*.md"))}
+
+
+def list_prompts() -> list[dict]:
+    out = []
+    for p in sorted((_PLUGIN_ROOT / "commands").glob("*.md")):
+        meta, _ = _kit_doc("commands", p.stem)
+        out.append({"name": p.stem, "description": meta.get("description", ""),
+                    "arguments": [{"name": "arguments", "required": False,
+                                   "description": meta.get("argument-hint", "")
+                                   or "your ask, in plain words"}]})
+    return out
+
+
+def get_prompt(name: str, args: dict) -> dict:
+    meta, body = _kit_doc("commands", name)
+    text = body.replace("$ARGUMENTS", str((args or {}).get("arguments", "")).strip())
+    return {"description": meta.get("description", ""),
+            "messages": [{"role": "user", "content": {"type": "text", "text": text}}]}
+
+
 def _schema(props: dict, req: list[str]) -> dict:
     return {"type": "object", "properties": props, "required": req}
 
@@ -531,6 +593,29 @@ TOOLS = [
          "run_id": {"type": "string", "description": "optional run whose logged "
                     "kernel computations date-check the draft"},
          "workspace": {"type": "string"}}, ["matter", "path"]), t_moot_check),
+    ("ironfleet_agent_brief",
+     "The full brief of one IronFleet stage agent (agents/<name>.md: role, rules, "
+     "deliverable, disallowed tools). Use it to dispatch that stage in any harness — "
+     "hand the brief to a subagent you spawn, or run the stage yourself when the harness "
+     "has no subagents. Name as in the commands (e.g. hunter or ironfleet-legal:hunter).",
+     _schema({"name": {"type": "string"}}, ["name"]), t_agent_brief),
+    ("ironfleet_command",
+     "The full instructions of one IronFleet workflow command (process-case, ingest, "
+     "doctor, sync-law, explain, debrief, case-status, next-actions, moot, hearing-pack, "
+     "mock-hearing) with the user's ask filled in. Use it when the user asks for one of "
+     "these by name and your harness shows no slash command for it — then follow the "
+     "returned instructions exactly.",
+     _schema({"name": {"type": "string"},
+              "arguments": {"type": "string", "description": "the user's ask, verbatim"}},
+             ["name"]),
+     lambda a: {"name": str(a.get("name", "")),
+                "instructions": get_prompt(str(a.get("name", "")), a)["messages"][0]
+                ["content"]["text"]}),
+    ("ironfleet_plugin_info",
+     "This plugin's install facts: version, plugin_root (the folder holding mcp/, "
+     "skills/, commands/, agents/), the python serving MCP, the store root, and the "
+     "command and agent names. Doctor uses it outside Claude Code.",
+     _schema({}, []), t_plugin_info),
 ]
 
 HANDLERS = {name: fn for name, _d, _s, fn in TOOLS}
@@ -628,7 +713,7 @@ def main() -> None:
         if method == "initialize":
             result = {"protocolVersion": msg.get("params", {}).get(
                           "protocolVersion", "2025-06-18"),
-                      "capabilities": {"tools": {}, "resources": {}},
+                      "capabilities": {"tools": {}, "resources": {}, "prompts": {}},
                       "serverInfo": {"name": "ironfleet", "version": VERSION}}
         elif method == "ping":
             result = {}
@@ -652,6 +737,14 @@ def main() -> None:
             except Exception as ex:                    # noqa: BLE001 — JSON-RPC error, MCP spec
                 result, err = None, {"code": -32002,
                                      "message": f"Resource not found: {ex}"}
+        elif method == "prompts/list":                 # H1: the commands, any harness
+            result = {"prompts": list_prompts()}
+        elif method == "prompts/get":
+            p = msg.get("params", {})
+            try:
+                result = get_prompt(p.get("name", ""), p.get("arguments") or {})
+            except Exception as ex:                    # noqa: BLE001 — JSON-RPC invalid params
+                result, err = None, {"code": -32602, "message": str(ex)}
         elif rid is None:
             continue                                   # notification: nothing to answer
         else:
@@ -661,7 +754,8 @@ def main() -> None:
             if err is not None:
                 resp["error"] = err
             elif method in ("initialize", "ping", "tools/list", "tools/call",
-                            "resources/list", "resources/read"):
+                            "resources/list", "resources/read",
+                            "prompts/list", "prompts/get"):
                 resp["result"] = result
             else:
                 resp["error"] = {"code": -32601, "message": f"unknown method {method}"}

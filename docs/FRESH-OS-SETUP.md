@@ -1,10 +1,11 @@
 # Fresh-OS setup — IronFleet Legal from zero
 
-> **Current release:** v0.3.2 (2026-11-04) · repo
+> **Current release:** v0.6.0 (2026-11-07) · repo
 > [BasimBashir/ironfleet-legal](https://github.com/BasimBashir/ironfleet-legal) ·
-> 26 skills (one adapted skill is distributed against its upstream's no-derivatives
-> terms at the repo owner's election — see ATTRIBUTION.md), 13 agents, 14
-> mechanical-only MCP tools.
+> 27 skills (one adapted skill is distributed against its upstream's no-derivatives
+> terms at the repo owner's election — see ATTRIBUTION.md), 19 agents, 11 commands,
+> 25 mechanical-only MCP tools · installs in Claude Code / Desktop / Cowork and in
+> the other harnesses of §1b.
 
 Every step below was executed live on a real Windows 11 box (2026-10-21) and verified
 end-to-end: install → doctor → ingest → the full nine-stage pipeline. Frictions found on
@@ -16,7 +17,7 @@ the way are recorded inline (marked **FRICTION**). macOS/Linux notes where they 
 |---|---|---|
 | OS volume encryption | BitLocker/FileVault/crypt ON | `manage-bde -status C:` (Admin) |
 | CPython | ≥ 3.10 | `python --version` |
-| Git + Node + Claude Code CLI | current | `claude --version` |
+| Git + Node + your harness (Claude Code CLI, or one from §1b) | current | `claude --version` |
 | Ollama | any recent | `curl http://127.0.0.1:11434/api/tags` |
 | bge-m3 model | — | `ollama pull bge-m3` (~1.2 GB) |
 | pypdf (PDF ingest only) | — | `python -m pip install --user pypdf` |
@@ -49,6 +50,168 @@ claude plugin install ironfleet-legal@ironfleet-legal --config consent_local_pro
   then start a NEW Claude session (see §4 — MCP binds at session start). Your corpus
   store and matter folders are outside the plugin cache and survive the upgrade. What
   changed is summarised in the README's "What changed since 0.1.0".
+
+## 1b. Other harnesses
+
+One repo, one source of truth: every harness below reads the same `skills/`,
+`commands/`, `agents/`, `mcp/server.py` and `hooks/moot_gate_hook.py`. §0 and §2–§3
+(Python, sqlite-vec, Ollama + bge-m3) apply unchanged — the MCP server always runs on
+the SYSTEM `python`. After installing, start a NEW session and run the doctor skill
+(ask "run the IronFleet doctor"); outside Claude Code it finds the plugin root itself
+and checks that the harness actually sees the `ironfleet_*` tools.
+
+**What reaches each harness.** Tools = the 25 `ironfleet_*` MCP tools. Commands =
+the 11 workflows. Agents = the 19 stage briefs. Gate = the `status: final` write-deny.
+Everywhere: if no slash command shows, ask by name — "IronFleet process-case: <ask>"
+— and the agent fetches the workflow with `ironfleet_command`; a stage agent the
+harness cannot load is dispatched from `ironfleet_agent_brief`.
+
+### OpenAI Codex (CLI, IDE extension, app)
+
+```bash
+codex plugin marketplace add BasimBashir/ironfleet-legal
+codex plugin add ironfleet-legal@ironfleet-legal
+```
+
+Codex reads `.codex-plugin/plugin.json`: skills, the MCP server (started from the
+plugin root, since Codex does not expand `${CLAUDE_PLUGIN_ROOT}`), and
+`hooks/codex-hooks.json` (the moot gate on `apply_patch`). Codex asks you to review
+new hooks: trust both IronFleet hooks under `/hooks`, or the gate does not run.
+Commands: by name (above). Agents: by brief. Skills: `$doctor`, `$nz-court-calendar`, ….
+App: Plugins → Add marketplace → `BasimBashir/ironfleet-legal`, then restart Codex.
+
+### xAI Grok Build (`grok`)
+
+```bash
+grok plugin install BasimBashir/ironfleet-legal --trust
+```
+
+Grok reads the Claude layout as-is: skills, commands (`/ironfleet-legal:process-case`),
+agents, `.mcp.json` and `hooks/hooks.json` (its Write/Edit matcher maps to Grok's
+`search_replace`; the gate reads Grok's camelCase payload). Press `r` in the Plugins
+tab or start a new session. Updates: `grok plugin update`.
+
+### GitHub Copilot CLI
+
+```bash
+copilot plugin marketplace add BasimBashir/ironfleet-legal
+copilot plugin install ironfleet-legal@ironfleet-legal
+```
+
+Copilot reads `.claude-plugin/` (manifest, marketplace, `.mcp.json`, skills, commands,
+hooks). Copilot loads agents only from `*.agent.md` files, so stages dispatch from
+`ironfleet_agent_brief`. If `/mcp` shows the ironfleet server failing to start, your
+build does not expand `${CLAUDE_PLUGIN_ROOT}` in plugin MCP args — add it by hand
+with the generic entry below.
+
+### OpenCode (≥ 1.18.29, or 2.x)
+
+Add to `opencode.json` (global `~/.config/opencode/opencode.json` or the project's):
+
+```json
+{ "plugins": ["ironfleet-legal@git+https://github.com/BasimBashir/ironfleet-legal.git"] }
+```
+
+On OpenCode 1.x the key is `plugin` (singular). Restart OpenCode. The plugin
+(`opencode/index.js`) registers the MCP server, the 27 skills, the 11 commands
+(`/process-case`, …), the 19 agents as subagents (1.x; on 2.x stages dispatch from
+`ironfleet_agent_brief`) and the moot gate on `write`/`edit`/`patch`. Check with
+`opencode mcp list` → `ironfleet connected`. Older than 1.18.29: upgrade
+(`opencode upgrade`) — earlier builds cannot load the plugin's export shape.
+
+### Pi
+
+```bash
+pi install git:github.com/BasimBashir/ironfleet-legal
+pi install npm:pi-subagents
+```
+
+The package (`package.json` → `pi`) brings the 27 skills, the 11 commands as prompt
+templates (`/process-case <ask>`), and `pi/extension.ts`: the MCP bridge Pi core lacks
+(all 25 tools) plus the moot gate on Pi's `write`/`edit`. `pi-subagents` gives the
+nine stages their own contexts; without it each stage runs inline and the run record
+says so. `/reload` or a new session after installing.
+
+### Hermes Agent (Nous Research)
+
+```bash
+hermes plugins install BasimBashir/ironfleet-legal --enable
+hermes ironfleet setup
+```
+
+The plugin registers the 27 skills, the 11 commands as `/ironfleet-process-case`,
+`/ironfleet-ingest`, … (namespaced so they never shadow Hermes built-ins) and the moot
+gate on `write_file`/`patch`. Hermes keeps MCP servers in `config.yaml`, so
+`hermes ironfleet setup` runs `hermes mcp add ironfleet --command python --args
+<plugin>/mcp/server.py` for you (`hermes mcp test ironfleet` to check). Stages
+dispatch through `delegate_task` from `ironfleet_agent_brief`. Hermes runs on
+macOS/Linux/WSL2.
+
+### DeepSeek Harness (`dsh`)
+
+```bash
+git clone https://github.com/BasimBashir/ironfleet-legal ~/.dsh/ironfleet-legal
+python ~/.dsh/ironfleet-legal/scripts/install_dsh.py --profile web
+```
+
+dsh has no installer for third-party bundles; the script backs up and appends two
+entries to `~/.dsh/profiles/<profile>/cordis.patch.yml`: the first-party MCP client on
+this checkout's server, and a skill provider over `skills/` and `commands/` (dsh loads
+flat Markdown skills, so the 11 commands arrive as skills). Re-running is a no-op.
+Check: `dsh --profile web --dump-config` lists `ironfleet-mcp` and
+`ironfleet-skills`. Gate: dsh 0.1.1 ships no Claude-hooks bridge, so the agent
+enforces it from the commands' instructions. Update with `git pull` in the checkout.
+
+### Cursor (and Grok Bot)
+
+`cursor-agent plugin marketplace add https://github.com/BasimBashir/ironfleet-legal`,
+then `/plugin` → install (in the app: Customize → Install). Grok Bot shares your
+Cursor plugin library — install it in Cursor, not in Grok Bot chat. Cursor reads
+`.cursor-plugin/plugin.json` (skills, commands, agents, `.mcp.json`). Cursor's hook
+format differs from Claude's, so the gate is instruction-enforced here.
+
+### Gemini CLI
+
+```bash
+gemini extensions install https://github.com/BasimBashir/ironfleet-legal
+```
+
+`gemini-extension.json` starts the MCP server via `${extensionPath}` and loads
+`AGENTS.md` as context. Commands arrive as the server's MCP prompts (`/process-case`);
+gate instruction-enforced. Update: `gemini extensions update ironfleet-legal`.
+
+### Factory Droid, Qwen Code
+
+Both convert Claude plugins at install:
+`droid plugin marketplace add https://github.com/BasimBashir/ironfleet-legal` then
+`droid plugin install ironfleet-legal@ironfleet-legal`;
+`qwen extensions install BasimBashir/ironfleet-legal:ironfleet-legal`.
+
+### Any other harness with MCP + Agent Skills
+
+Clone the repo, then give your harness one stdio MCP server and one skills folder:
+
+```json
+{ "mcpServers": { "ironfleet": { "command": "python",
+  "args": ["/ABSOLUTE/PATH/ironfleet-legal/mcp/server.py"] } } }
+```
+
+Skills: point the harness at `/ABSOLUTE/PATH/ironfleet-legal/skills` (or symlink each
+folder into its skills root — `~/.agents/skills` is read by many). Commands and
+agents arrive through `ironfleet_command` / `ironfleet_agent_brief`; `AGENTS.md`
+explains the kit to the agent.
+
+### How each install was verified (2026-11-07)
+
+| Harness | Evidence |
+|---|---|
+| Claude Code / Desktop / Cowork | live runs since 0.1.0; `claude plugin validate --strict` passes on 0.6.0 |
+| OpenCode | LIVE on 1.18.25: MCP `connected`, 11 commands + 19 agents + skills in the resolved config, gate blocks an unmarked final write (adapter loaded through a test shim — 1.18.25 predates the export shape; 2.x path checked against the 2.x plugin API docs, not run) |
+| DeepSeek Harness | LIVE on dsh 0.1.1-rc.2: patch composes in `--dump-config`; no model session run |
+| Codex | server launch + hook command exercised offline exactly as Codex's loader invokes them (`tests/test_adapters.py`); install not run |
+| Pi | extension run under Node against a stand-in Pi host: 25 tools bridged, calls and errors round-trip, gate blocks; not run inside Pi |
+| Hermes | `register()` run against a stand-in plugin context (`tests/test_adapters.py`); not run inside Hermes |
+| Grok Build, Copilot CLI, Cursor, Gemini CLI, Droid, Qwen | built from each harness's published docs/source; not run |
 
 ## 2. Python deps for the corpus machinery
 

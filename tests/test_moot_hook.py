@@ -79,6 +79,57 @@ def test_edit_denies_when_target_file_already_final_unmarked(tmp_path):
     assert p.returncode == 2
 
 
+# --- other harnesses' write shapes (Codex, Grok Build, OpenCode, Pi, Hermes) ------
+
+def test_grok_camelcase_payload_denies():
+    p = run_hook({"toolName": "search_replace",
+                  "toolInput": {"file_path": "C:/tmp/none.md", "old_string": "",
+                                "new_string": FINAL}})
+    assert p.returncode == 2
+
+
+def test_opencode_write_and_edit_shapes(tmp_path):
+    assert run_hook({"tool_input": {"filePath": "x.md", "content": FINAL}}).returncode == 2
+    f = tmp_path / "advice.md"
+    f.write_text("# draft\n", encoding="utf-8")
+    p = run_hook({"tool_input": {"filePath": str(f), "oldString": "# draft\n",
+                                 "newString": "status: final\n"}})
+    assert p.returncode == 2
+
+
+def test_pi_edits_array(tmp_path):
+    f = tmp_path / "advice.md"
+    f.write_text(FINAL_PASSED, encoding="utf-8")
+    ok = {"path": str(f), "edits": [{"oldText": "Advice body.", "newText": "Advice."}]}
+    assert run_hook({"tool_input": ok}).returncode == 0
+    bad = {"path": str(f), "edits": [{"oldText": "moot-gate: PASSED run-20261105-abc123",
+                                      "newText": ""}]}
+    assert run_hook({"tool_input": bad}).returncode == 2
+
+
+def test_codex_apply_patch_add_and_update(tmp_path):
+    add = "*** Begin Patch\n*** Add File: advice.md\n+status: final\n+body\n*** End Patch\n"
+    assert run_hook({"tool_name": "apply_patch", "cwd": str(tmp_path),
+                     "tool_input": {"command": add}}).returncode == 2
+    (tmp_path / "advice.md").write_text(FINAL_PASSED, encoding="utf-8")
+    upd = ("*** Begin Patch\n*** Update File: advice.md\n@@\n-Advice body.\n"
+           "+Advice body, tightened.\n*** End Patch\n")
+    assert run_hook({"tool_name": "apply_patch", "cwd": str(tmp_path),
+                     "tool_input": {"command": upd}}).returncode == 0
+    strip = ("*** Begin Patch\n*** Update File: advice.md\n@@\n"
+             "-moot-gate: PASSED run-20261105-abc123\n*** End Patch\n")
+    assert run_hook({"tool_name": "apply_patch", "cwd": str(tmp_path),
+                     "tool_input": {"command": strip}}).returncode == 2
+
+
+def test_in_process_api_for_adapters():
+    sys.path.insert(0, str(HOOK.parent))
+    import moot_gate_hook as gate                      # noqa: E402 — the Hermes adapter's import
+    assert gate.deny_reason({"path": "x.md", "content": FINAL})
+    assert gate.deny_reason({"path": "x.md", "content": FINAL_PASSED}) is None
+    assert gate.deny_reason({"command": "ls"}) is None   # not a write
+
+
 def test_garbage_stdin_never_blocks():
     p = subprocess.run([sys.executable, str(HOOK)], input="not json{",
                        capture_output=True, text=True, encoding="utf-8", timeout=60)
